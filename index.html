@@ -36,6 +36,9 @@
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
+    <!-- SUPABASE CLIENT SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
@@ -129,14 +132,11 @@
 
             <hr class="my-3 border-gray-200 dark:border-gray-700">
 
-            <!-- IndexedDB Info -->
+            <!-- Storage Info -->
             <div class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
                 <div class="flex justify-between">
-                    <span>Pamięć Bazy:</span>
-                    <span id="dbSizeText" class="font-semibold text-gray-700 dark:text-gray-300">0 MB</span>
-                </div>
-                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                    <div id="dbBar" class="bg-brand-500 h-1.5 rounded-full" style="width: 2%"></div>
+                    <span>Status Chmury:</span>
+                    <span id="dbSizeText" class="font-semibold text-brand-600 dark:text-brand-400">Połączono</span>
                 </div>
             </div>
         </aside>
@@ -358,26 +358,14 @@
     <!-- MODAL: Backup / Sync -->
     <div id="backupModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-bold mb-2">Synchronizacja i Kopia Zapasowa</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Przenoś całą swoją bazę studiów (wszystkie pliki PDF oraz notatki) pomiędzy komputerem, telefonem i tabletem.</p>
+            <h3 class="text-lg font-bold mb-2">Kopia Zapasowa</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Pobierz kopię zapasową swoich notatek w formacie JSON.</p>
             
             <div class="space-y-4">
                 <button id="exportDataBtn" class="w-full bg-brand-600 hover:bg-brand-700 text-white p-3 rounded-xl text-sm font-semibold flex items-center justify-center space-x-2 shadow-sm">
                     <i class="fa-solid fa-file-export"></i>
                     <span>Eksportuj Całą Bazę (Pobierz Backup JSON)</span>
                 </button>
-
-                <div class="relative flex py-1 items-center">
-                    <div class="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
-                    <span class="flex-shrink mx-4 text-xs text-gray-400">LUB</span>
-                    <div class="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
-                </div>
-
-                <label class="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 p-3 rounded-xl text-sm font-semibold flex items-center justify-center space-x-2 cursor-pointer transition">
-                    <i class="fa-solid fa-file-import"></i>
-                    <span>Importuj Bazę z Pliku</span>
-                    <input type="file" id="importFileInput" accept=".json" class="hidden">
-                </label>
             </div>
 
             <div class="mt-6 text-right">
@@ -386,36 +374,14 @@
         </div>
     </div>
 
-    <!-- MODAL: Guide Vercel & GitHub -->
+    <!-- MODAL: Guide -->
     <div id="guideModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
             <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-rocket text-brand-600"></i> Jak uruchomić na GitHub / Vercel?
+                <i class="fa-solid fa-rocket text-brand-600"></i> Informacje o aplikacji
             </h3>
-            <div class="space-y-4 text-sm text-gray-600 dark:text-gray-300">
-                <p>Aplikacja jest jednoplikowym skryptem HTML, co oznacza, że wystarczy 1 minuta, aby była dostępna w internecie 24/7 na wszystkich Twoich urządzeniach!</p>
-                
-                <div class="bg-gray-50 dark:bg-gray-700/50 p-3.5 rounded-xl border border-gray-200 dark:border-gray-600 space-y-2">
-                    <h4 class="font-bold text-gray-900 dark:text-white">Opcja 1: Uruchomienie przez Vercel (Rekomendowane)</h4>
-                    <ol class="list-decimal pl-5 space-y-1 text-xs">
-                        <li>Zapisz kod tej strony na komputerze pod nazwą <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">index.html</code>.</li>
-                        <li>Stwórz darmowe konto na <strong>Vercel.com</strong>.</li>
-                        <li>Przeciągnij folder z plikiem <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">index.html</code> do panelu Vercel (lub połącz z repozytorium GitHub).</li>
-                        <li>Twój panel StudyHub będzie gotowy pod dedykowanym adresem URL!</li>
-                    </ol>
-                </div>
-
-                <div class="bg-gray-50 dark:bg-gray-700/50 p-3.5 rounded-xl border border-gray-200 dark:border-gray-600 space-y-2">
-                    <h4 class="font-bold text-gray-900 dark:text-white">Opcja 2: GitHub Pages</h4>
-                    <ol class="list-decimal pl-5 space-y-1 text-xs">
-                        <li>Utwórz nowe repozytorium na GitHubie (np. <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">notatki-studia</code>).</li>
-                        <li>Wgraj plik <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">index.html</code> do repozytorium.</li>
-                        <li>Wejdź w <strong>Settings -> Pages</strong>, wybierz gałąź <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">main</code> i kliknij <strong>Save</strong>.</li>
-                    </ol>
-                </div>
-            </div>
-
-            <div class="mt-6 text-right">
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Aplikacja jest w pełni połączona z bazą danych Supabase. Twoje pliki PDF oraz notatki zapisują się w chmurze i są dostępne na każdym urządzeniu!</p>
+            <div class="text-right">
                 <button id="closeGuideModalBtn" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl">Rozumiem</button>
             </div>
         </div>
@@ -425,10 +391,11 @@
         // Configure PDF.js Worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-        // IndexedDB Configuration
-        const DB_NAME = 'StudyHubDatabase';
-        const DB_VERSION = 1;
-        let db = null;
+        // --- KONFIGURACJA SUPABASE ---
+        const SUPABASE_URL = 'https://zuyjjwobumpmppurbozl.supabase.co';
+        const SUPABASE_ANON_KEY = 'PODMIEN_NA_SWOJ_SUPABASE_ANON_KEY'; // <--- WKLEJ SWÓJ KLUCZ ANON Z SUPABASE
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Application State
         let state = {
@@ -444,69 +411,43 @@
             mainQuill: null
         };
 
-        // Utility: Polish String Normalizer (Removes accents / diacritics for search)
         function normalizeText(str) {
             if (!str) return '';
-            return str
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .replace(/ł/g, "l")
-                .replace(/Ł/g, "l");
+            return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l").replace(/Ł/g, "l");
         }
 
-        // Open IndexedDB
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onupgradeneeded = (e) => {
-                    const database = e.target.result;
-                    if (!database.objectStoreNames.contains('subjects')) {
-                        database.createObjectStore('subjects', { keyPath: 'id' });
-                    }
-                    if (!database.objectStoreNames.contains('materials')) {
-                        database.createObjectStore('materials', { keyPath: 'id' });
-                    }
-                };
-                request.onsuccess = (e) => {
-                    db = e.target.result;
-                    resolve(db);
-                };
-                request.onerror = (e) => reject(e);
-            });
+        // --- POBIERANIE DANYCH Z SUPABASE ---
+        async function fetchSubjectsFromDB() {
+            const { data, error } = await supabase.from('subjects').select('*');
+            if (error) {
+                console.error('Błąd pobierania przedmiotów:', error.message);
+                return [];
+            }
+            return data || [];
         }
 
-        // Database Helpers
-        function getAllFromDB(storeName) {
-            return new Promise((resolve) => {
-                const tx = db.transaction(storeName, 'readonly');
-                const store = tx.objectStore(storeName);
-                const request = store.getAll();
-                request.onsuccess = () => resolve(request.result || []);
-            });
+        async function fetchMaterialsFromDB() {
+            const { data, error } = await supabase.from('materials').select('*');
+            if (error) {
+                console.error('Błąd pobierania materiałów:', error.message);
+                return [];
+            }
+            return data || [];
         }
 
-        function saveToDB(storeName, item) {
-            return new Promise((resolve) => {
-                const tx = db.transaction(storeName, 'readwrite');
-                const store = tx.objectStore(storeName);
-                store.put(item);
-                tx.oncomplete = () => resolve();
-            });
+        async function saveSubjectToDB(subject) {
+            await supabase.from('subjects').insert([subject]);
         }
 
-        function deleteFromDB(storeName, id) {
-            return new Promise((resolve) => {
-                const tx = db.transaction(storeName, 'readwrite');
-                const store = tx.objectStore(storeName);
-                store.delete(id);
-                tx.oncomplete = () => resolve();
-            });
+        async function saveMaterialToDB(material) {
+            await supabase.from('materials').insert([material]);
+        }
+
+        async function deleteMaterialFromDB(id) {
+            await supabase.from('materials').delete().eq('id', id);
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
-            await initDB();
-            
             // Initialize Editors
             state.mainQuill = new Quill('#quillEditor', {
                 theme: 'snow',
@@ -518,20 +459,18 @@
                 placeholder: 'Rób szybkie notatki w trakcie czytania PDF...'
             });
 
-            // Initial Subjects setup if DB is empty
-            let savedSubjects = await getAllFromDB('subjects');
+            // Initial Subjects & Materials setup from Supabase
+            let savedSubjects = await fetchSubjectsFromDB();
             if (savedSubjects.length === 0) {
                 savedSubjects = [
                     { id: 'subj-1', name: 'Analiza Matematyczna', semester: '1' },
                     { id: 'subj-2', name: 'Programowanie w C++', semester: '1' },
                     { id: 'subj-3', name: 'Bazy Danych', semester: '2' }
                 ];
-                for (const s of savedSubjects) await saveToDB('subjects', s);
+                for (const s of savedSubjects) await saveSubjectToDB(s);
             }
             state.subjects = savedSubjects;
-
-            // Load Materials
-            state.materials = await getAllFromDB('materials');
+            state.materials = await fetchMaterialsFromDB();
 
             // Apply Saved Theme
             if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -542,7 +481,6 @@
 
             renderSidebar();
             renderMaterials();
-            updateStorageMetrics();
             attachEventListeners();
         });
 
@@ -556,7 +494,6 @@
                 filteredSubjects = state.subjects.filter(s => s.semester === semFilter);
             }
 
-            // All subjects item
             const allBtn = document.createElement('button');
             allBtn.className = `w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition ${state.activeSubjectId === 'ALL' ? 'bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`;
             allBtn.innerHTML = `<span class="flex items-center gap-2"><i class="fa-solid fa-border-all"></i> Wszystkie Przedmioty</span>`;
@@ -584,10 +521,8 @@
             const clearSearchBtn = document.getElementById('clearSearchBtn');
 
             grid.innerHTML = '';
-
             const normalizedQuery = normalizeText(state.searchQuery.trim());
 
-            // Toggle clear button on input
             if (state.searchQuery.trim().length > 0) {
                 clearSearchBtn.classList.remove('hidden');
                 searchBanner.classList.remove('hidden');
@@ -597,53 +532,39 @@
                 searchBanner.classList.add('hidden');
             }
 
-            // Filtering pipeline
             let filtered = state.materials.filter(mat => {
                 const subjectObj = state.subjects.find(s => s.id === mat.subjectId);
                 const subjectName = subjectObj ? subjectObj.name : '';
                 const semesterText = subjectObj ? `semestr ${subjectObj.semester}` : '';
 
-                // 1. Subject filter
-                if (state.activeSubjectId !== 'ALL' && mat.subjectId !== state.activeSubjectId) {
-                    return false;
-                }
+                if (state.activeSubjectId !== 'ALL' && mat.subjectId !== state.activeSubjectId) return false;
 
-                // 2. Semester Filter from Sidebar
                 const semFilter = document.getElementById('semesterFilter').value;
-                if (semFilter !== 'ALL' && subjectObj && subjectObj.semester !== semFilter) {
-                    return false;
-                }
+                if (semFilter !== 'ALL' && subjectObj && subjectObj.semester !== semFilter) return false;
 
-                // 3. Search query filter (Normalized across multiple attributes)
                 if (normalizedQuery.length > 0) {
                     const matchTitle = normalizeText(mat.title).includes(normalizedQuery);
                     const matchSubject = normalizeText(subjectName).includes(normalizedQuery);
                     const matchSemester = normalizeText(semesterText).includes(normalizedQuery);
                     const matchTags = mat.tags && mat.tags.some(t => normalizeText(t).includes(normalizedQuery));
                     
-                    // Strip HTML tags for note content search
                     let matchContent = false;
                     if (mat.content) {
                         const plainTextContent = mat.content.replace(/<[^>]*>?/gm, '');
                         matchContent = normalizeText(plainTextContent).includes(normalizedQuery);
                     }
 
-                    if (!matchTitle && !matchSubject && !matchSemester && !matchTags && !matchContent) {
-                        return false;
-                    }
+                    if (!matchTitle && !matchSubject && !matchSemester && !matchTags && !matchContent) return false;
                 }
-
                 return true;
             });
 
-            // Update tab counts
             const pdfsCount = filtered.filter(m => m.type === 'pdf').length;
             const notesCount = filtered.filter(m => m.type === 'note').length;
             document.getElementById('cntAll').textContent = filtered.length;
             document.getElementById('cntPdfs').textContent = pdfsCount;
             document.getElementById('cntNotes').textContent = notesCount;
 
-            // 4. Tab Type filter
             if (state.activeTab === 'PDF') filtered = filtered.filter(m => m.type === 'pdf');
             if (state.activeTab === 'NOTE') filtered = filtered.filter(m => m.type === 'note');
 
@@ -657,7 +578,6 @@
                 emptyState.classList.remove('flex');
             }
 
-            // Render material cards
             filtered.forEach(mat => {
                 const card = document.createElement('div');
                 card.className = "bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between group";
@@ -694,7 +614,6 @@
                     </div>
                 `;
 
-                // Interactive Tag Filter Click
                 card.querySelectorAll('.tag-click-btn').forEach(btn => {
                     btn.onclick = (e) => {
                         e.stopPropagation();
@@ -709,10 +628,9 @@
                 card.querySelector('.del-mat-btn').onclick = async (e) => {
                     e.stopPropagation();
                     if(confirm(`Czy na pewno chcesz usunąć "${mat.title}"?`)) {
-                        await deleteFromDB('materials', mat.id);
+                        await deleteMaterialFromDB(mat.id);
                         state.materials = state.materials.filter(m => m.id !== mat.id);
                         renderMaterials();
-                        updateStorageMetrics();
                     }
                 };
 
@@ -730,55 +648,14 @@
 
         function openPdfViewer(mat) {
             document.getElementById('pdfViewerTitle').textContent = mat.title;
-            
-            let blob;
-            if (mat.fileBlob instanceof Blob) {
-                blob = mat.fileBlob;
-            } else if (mat.fileArrayBuffer) {
-                blob = new Blob([mat.fileArrayBuffer], { type: 'application/pdf' });
-            }
-
-            if (state.currentPdfBlobUrl) {
-                URL.revokeObjectURL(state.currentPdfBlobUrl);
-            }
-
-            state.currentPdfBlobUrl = URL.createObjectURL(blob);
-
             const embedEl = document.getElementById('pdfEmbedElement');
-            embedEl.src = state.currentPdfBlobUrl;
+            embedEl.src = mat.file_url;
 
             const downloadBtn = document.getElementById('downloadPdfDirectBtn');
-            downloadBtn.href = state.currentPdfBlobUrl;
+            downloadBtn.href = mat.file_url;
             downloadBtn.download = mat.title.endsWith('.pdf') ? mat.title : `${mat.title}.pdf`;
 
-            loadPdfJsEngine(blob);
             document.getElementById('pdfViewerModal').classList.remove('hidden');
-        }
-
-        async function loadPdfJsEngine(blob) {
-            try {
-                const arrayBuffer = await blob.arrayBuffer();
-                state.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                document.getElementById('pdfPageCount').textContent = state.pdfDoc.numPages;
-                state.pdfPageNum = 1;
-                renderPdfCanvasPage(state.pdfPageNum);
-            } catch (err) {
-                console.warn('PDF.js render error:', err);
-            }
-        }
-
-        async function renderPdfCanvasPage(num) {
-            if (!state.pdfDoc) return;
-            const page = await state.pdfDoc.getPage(num);
-            const canvas = document.getElementById('pdfCanvas');
-            const ctx = canvas.getContext('2d');
-
-            const viewport = page.getViewport({ scale: 1.3 });
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-
-            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-            document.getElementById('pdfNum').textContent = num;
         }
 
         function openNoteEditor(mat = null) {
@@ -806,48 +683,52 @@
             modal.classList.remove('hidden');
         }
 
+        // --- WYSYŁANIE PLIKU PDF DO SUPABASE STORAGE ---
         async function handlePdfUpload(file) {
             if (!file || file.type !== 'application/pdf') {
                 alert('Proszę wybrać poprawny plik w formacie PDF.');
                 return;
             }
 
-            const arrayBuffer = await file.arrayBuffer();
+            const fileName = `${Date.now()}_${file.name}`;
+            
+            // 1. Upload do Supabase Storage bucket 'pdf-files'
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('pdf-files')
+                .upload(fileName, file);
+
+            if (uploadError) {
+                alert('Błąd wysyłania pliku: ' + uploadError.message);
+                return;
+            }
+
+            // 2. Pobieranie Publicznego URL
+            const { data: urlData } = supabase.storage
+                .from('pdf-files')
+                .getPublicUrl(fileName);
+
+            // 3. Zapis metadanych w tabeli Supabase
             const newMaterial = {
                 id: 'pdf-' + Date.now(),
                 type: 'pdf',
                 title: file.name.replace(/\.[^/.]+$/, ""),
-                fileArrayBuffer: arrayBuffer,
+                file_url: urlData.publicUrl,
                 subjectId: state.activeSubjectId === 'ALL' ? (state.subjects[0]?.id || 'general') : state.activeSubjectId,
                 tags: ['pdf', 'studia'],
                 createdAt: new Date().toISOString()
             };
 
-            await saveToDB('materials', newMaterial);
+            await saveMaterialToDB(newMaterial);
             state.materials.push(newMaterial);
             renderMaterials();
-            updateStorageMetrics();
-        }
-
-        async function updateStorageMetrics() {
-            let totalBytes = 0;
-            state.materials.forEach(m => {
-                if (m.fileArrayBuffer) totalBytes += m.fileArrayBuffer.byteLength;
-                if (m.content) totalBytes += m.content.length * 2;
-            });
-            const mb = (totalBytes / (1024 * 1024)).toFixed(2);
-            document.getElementById('dbSizeText').textContent = `${mb} MB`;
-            document.getElementById('dbBar').style.width = `${Math.min(100, (mb / 500) * 100)}%`;
         }
 
         function attachEventListeners() {
-            // Theme Switcher
             document.getElementById('themeToggleBtn').onclick = () => {
                 document.documentElement.classList.toggle('dark');
                 localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             };
 
-            // Real-Time Search Listeners
             const searchInput = document.getElementById('globalSearchInput');
             const clearSearchBtn = document.getElementById('clearSearchBtn');
 
@@ -877,7 +758,6 @@
             document.getElementById('resetSearchFiltersBtn').onclick = clearAllFilters;
             document.getElementById('emptyClearFiltersBtn').onclick = clearAllFilters;
 
-            // Drag and Drop Zone
             const dropZone = document.getElementById('dropZone');
             window.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.remove('hidden'); });
             dropZone.addEventListener('dragleave', (e) => { if (e.relatedTarget === null) dropZone.classList.add('hidden'); });
@@ -889,7 +769,6 @@
                 }
             });
 
-            // PDF Upload Input
             document.getElementById('pdfFileInput').onchange = async (e) => {
                 if (e.target.files.length > 0) {
                     await handlePdfUpload(e.target.files[0]);
@@ -897,7 +776,6 @@
                 }
             };
 
-            // Tab Controls
             document.getElementById('tabAll').onclick = function() { setTab('ALL', this); };
             document.getElementById('tabPdfs').onclick = function() { setTab('PDF', this); };
             document.getElementById('tabNotes').onclick = function() { setTab('NOTE', this); };
@@ -913,13 +791,11 @@
                 renderMaterials();
             }
 
-            // Semester Filter Change
             document.getElementById('semesterFilter').onchange = () => {
                 renderSidebar();
                 renderMaterials();
             };
 
-            // Add Subject Modal
             document.getElementById('addSubjectBtn').onclick = () => document.getElementById('subjectModal').classList.remove('hidden');
             document.getElementById('cancelSubjectBtn').onclick = () => document.getElementById('subjectModal').classList.add('hidden');
             document.getElementById('saveSubjectBtn').onclick = async () => {
@@ -928,14 +804,13 @@
                 if (!name) return alert('Wpisz nazwę przedmiotu');
 
                 const newSub = { id: 'subj-' + Date.now(), name: name, semester: sem };
-                await saveToDB('subjects', newSub);
+                await saveSubjectToDB(newSub);
                 state.subjects.push(newSub);
                 document.getElementById('newSubjectName').value = '';
                 document.getElementById('subjectModal').classList.add('hidden');
                 renderSidebar();
             };
 
-            // Note Modal Controls
             document.getElementById('openNewNoteBtn').onclick = () => openNoteEditor();
             document.getElementById('closeNoteModalBtn').onclick = () => document.getElementById('noteModal').classList.add('hidden');
             document.getElementById('cancelNoteBtn').onclick = () => document.getElementById('noteModal').classList.add('hidden');
@@ -952,7 +827,7 @@
                     id, type: 'note', title, subjectId, tags, content, createdAt: new Date().toISOString()
                 };
 
-                await saveToDB('materials', noteMat);
+                await saveMaterialToDB(noteMat);
                 
                 const idx = state.materials.findIndex(m => m.id === id);
                 if (idx >= 0) state.materials[idx] = noteMat;
@@ -960,52 +835,8 @@
 
                 document.getElementById('noteModal').classList.add('hidden');
                 renderMaterials();
-                updateStorageMetrics();
             };
 
-            // Export Note to PDF
-            document.getElementById('exportNotePdfBtn').onclick = () => {
-                const title = document.getElementById('noteTitleInput').value || 'Notatka';
-                const element = document.createElement('div');
-                element.style.padding = '20px';
-                element.innerHTML = `<h1>${title}</h1><hr><br>` + state.mainQuill.root.innerHTML;
-
-                html2pdf().set({
-                    margin: 10,
-                    filename: `${title}.pdf`,
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                }).from(element).save();
-            };
-
-            // PDF Engines Switcher
-            document.getElementById('engineNativeBtn').onclick = () => {
-                document.getElementById('nativeEmbedContainer').classList.remove('hidden');
-                document.getElementById('canvasRenderContainer').classList.add('hidden');
-                document.getElementById('canvasToolbar').classList.add('hidden');
-            };
-
-            document.getElementById('engineCanvasBtn').onclick = () => {
-                document.getElementById('nativeEmbedContainer').classList.add('hidden');
-                document.getElementById('canvasRenderContainer').classList.remove('hidden');
-                document.getElementById('canvasToolbar').classList.remove('hidden');
-            };
-
-            document.getElementById('pdfPrevPage').onclick = () => {
-                if (state.pdfPageNum > 1) {
-                    state.pdfPageNum--;
-                    renderPdfCanvasPage(state.pdfPageNum);
-                }
-            };
-
-            document.getElementById('pdfNextPage').onclick = () => {
-                if (state.pdfDoc && state.pdfPageNum < state.pdfDoc.numPages) {
-                    state.pdfPageNum++;
-                    renderPdfCanvasPage(state.pdfPageNum);
-                }
-            };
-
-            // PDF Split Screen Toggle
             document.getElementById('toggleSplitViewBtn').onclick = () => {
                 const rightPane = document.getElementById('pdfViewerRightPane');
                 rightPane.classList.toggle('hidden');
@@ -1025,9 +856,9 @@
                     createdAt: new Date().toISOString()
                 };
 
-                await saveToDB('materials', noteMat);
+                await saveMaterialToDB(noteMat);
                 state.materials.push(noteMat);
-                alert('Notatka została zapisana w Twojej bazie!');
+                alert('Notatka została zapisana w Twojej bazie Supabase!');
                 renderMaterials();
             };
 
@@ -1035,81 +866,9 @@
                 document.getElementById('pdfViewerModal').classList.add('hidden');
             };
 
-            // Backup & Sync Modal
             document.getElementById('backupModalBtn').onclick = () => document.getElementById('backupModal').classList.remove('hidden');
             document.getElementById('closeBackupModalBtn').onclick = () => document.getElementById('backupModal').classList.add('hidden');
 
-            // Export Entire Database JSON
-            document.getElementById('exportDataBtn').onclick = async () => {
-                const exportObj = {
-                    subjects: state.subjects,
-                    materials: []
-                };
-
-                for (const m of state.materials) {
-                    const item = { ...m };
-                    if (item.fileArrayBuffer) {
-                        const bytes = new Uint8Array(item.fileArrayBuffer);
-                        let binary = '';
-                        for (let i = 0; i < bytes.byteLength; i++) {
-                            binary += String.fromCharCode(bytes[i]);
-                        }
-                        item.fileBase64 = btoa(binary);
-                        delete item.fileArrayBuffer;
-                    }
-                    exportObj.materials.push(item);
-                }
-
-                const blob = new Blob([JSON.stringify(exportObj)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `StudyHub_Backup_${new Date().toISOString().slice(0,10)}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-            };
-
-            // Import Database JSON
-            document.getElementById('importFileInput').onchange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = async (evt) => {
-                    try {
-                        const imported = JSON.parse(evt.target.result);
-                        if (imported.subjects && imported.materials) {
-                            for (const s of imported.subjects) await saveToDB('subjects', s);
-                            
-                            for (const m of imported.materials) {
-                                if (m.fileBase64) {
-                                    const binary = atob(m.fileBase64);
-                                    const bytes = new Uint8Array(binary.length);
-                                    for (let i = 0; i < binary.length; i++) {
-                                        bytes[i] = binary.charCodeAt(i);
-                                    }
-                                    m.fileArrayBuffer = bytes.buffer;
-                                    delete m.fileBase64;
-                                }
-                                await saveToDB('materials', m);
-                            }
-
-                            state.subjects = await getAllFromDB('subjects');
-                            state.materials = await getAllFromDB('materials');
-                            renderSidebar();
-                            renderMaterials();
-                            updateStorageMetrics();
-                            alert('Baza danych została pomyślnie zaimportowana!');
-                            document.getElementById('backupModal').classList.add('hidden');
-                        }
-                    } catch (err) {
-                        alert('Błąd odczytu pliku kopii zapasowej.');
-                    }
-                };
-                reader.readAsText(file);
-            };
-
-            // Help Guide Modal
             document.getElementById('helpGuideBtn').onclick = () => document.getElementById('guideModal').classList.remove('hidden');
             document.getElementById('closeGuideModalBtn').onclick = () => document.getElementById('guideModal').classList.add('hidden');
         }
