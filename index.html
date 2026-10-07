@@ -77,7 +77,7 @@
 
             <!-- Header Controls -->
             <div class="flex items-center space-x-2">
-                <button id="themeToggleBtn" title="Tryb Ciemny/Jasny" class="p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
+                <button id="themeToggleBtn" type="button" title="Tryb Ciemny/Jasny" class="p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
                     <i class="fa-solid fa-moon dark:hidden text-lg"></i>
                     <i class="fa-solid fa-sun hidden dark:block text-lg text-amber-400"></i>
                 </button>
@@ -272,11 +272,10 @@
     </div>
 
     <script>
-        // SUPABASE CLIENT INITIALIZATION
         const SUPABASE_URL = 'https://zuyjjwobumpmppurbozl.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1eWpqd29idW1wbXBwdXJib3psIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNTc5OTksImV4cCI6MjEwNjkzMzk5OX0.POQ4e07F2DIDax5AEl4cEPSXy42kLk3BZLUjObV-2jA';
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let state = {
             subjects: [],
@@ -294,27 +293,30 @@
 
         async function loadDataFromSupabase() {
             try {
-                // Pobieranie przedmiotów z Supabase
-                const { data: subjData, error: subjErr } = await supabase.from('subjects').select('*');
+                // 1. Pobieranie przedmiotów
+                const { data: subjData, error: subjErr } = await supabaseClient.from('subjects').select('*');
                 if (subjErr) console.error('Błąd pobierania przedmiotów:', subjErr);
                 state.subjects = subjData || [];
 
-                // Pobieranie materiałów z Supabase
-                const { data: matData, error: matErr } = await supabase.from('materials').select('*');
-                if (matErr) console.error('Błąd pobierania materiałów:', matErr);
-                
-                state.materials = (matData || []).map(m => ({
-                    ...m,
-                    subjectId: m.subject_id || m.subjectId || 'subj-1',
-                    createdAt: m.created_at || m.createdAt
-                }));
-
-                // Jeśli brak jakichkolwiek przedmiotów w bazie, dodaj domyślny
+                // Jeśli baza nie zawiera przedmiotów, utwórz domyślny
                 if (state.subjects.length === 0) {
                     const defaultSubj = { id: 'subj-1', name: 'Analiza Matematyczna', semester: '1' };
-                    await supabase.from('subjects').insert([defaultSubj]);
+                    await supabaseClient.from('subjects').insert([defaultSubj]);
                     state.subjects = [defaultSubj];
                 }
+
+                // 2. Pobieranie materiałów
+                const { data: matData, error: matErr } = await supabaseClient.from('materials').select('*');
+                if (matErr) console.error('Błąd pobierania materiałów:', matErr);
+                
+                state.materials = (matData || []).map(m => {
+                    const subId = m.subject_id || m.subjectId || (state.subjects[0] ? state.subjects[0].id : 'subj-1');
+                    return {
+                        ...m,
+                        subjectId: subId,
+                        createdAt: m.created_at || m.createdAt
+                    };
+                });
 
                 renderSidebar();
                 renderMaterials();
@@ -426,7 +428,7 @@
                 card.querySelector('.del-mat-btn').onclick = async (e) => {
                     e.stopPropagation();
                     if(confirm(`Czy na pewno chcesz usunąć "${mat.title}"?`)) {
-                        await supabase.from('materials').delete().eq('id', mat.id);
+                        await supabaseClient.from('materials').delete().eq('id', mat.id);
                         state.materials = state.materials.filter(m => m.id !== mat.id);
                         renderMaterials();
                     }
@@ -483,17 +485,23 @@
                 const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
                 const fileName = `${Date.now()}_${cleanName}`;
 
-                const { data: storageData, error: storageErr } = await supabase.storage
+                // 1. Upload do Storage Bucketa
+                const { data: storageData, error: storageErr } = await supabaseClient.storage
                     .from('pdf-files')
                     .upload(fileName, file);
 
                 if (storageErr) throw storageErr;
 
-                const { data: urlData } = supabase.storage
+                // 2. Pobieranie odnośnika publicznego
+                const { data: urlData } = supabaseClient.storage
                     .from('pdf-files')
                     .getPublicUrl(fileName);
 
-                let targetSubjectId = state.activeSubjectId === 'ALL' ? (state.subjects[0]?.id || 'subj-1') : state.activeSubjectId;
+                // Przypisanie przedmiotu: jeśli użytkownik nie wybrał konkretnego przedmiotu, użyj pierwszego z bazy
+                let targetSubjectId = state.activeSubjectId;
+                if (targetSubjectId === 'ALL') {
+                    targetSubjectId = state.subjects.length > 0 ? state.subjects[0].id : 'subj-1';
+                }
 
                 const newPdf = {
                     id: 'pdf-' + Date.now(),
@@ -504,21 +512,23 @@
                     created_at: new Date().toISOString()
                 };
 
-                const { error: dbErr } = await supabase.from('materials').insert([newPdf]);
+                // 3. Zapis w tabeli SQL
+                const { error: dbErr } = await supabaseClient.from('materials').insert([newPdf]);
                 if (dbErr) throw dbErr;
 
+                // 4. Zaktualizowanie stanu lokalnego i odświeżenie widoku
                 state.materials.push({ ...newPdf, subjectId: targetSubjectId, createdAt: newPdf.created_at });
                 renderMaterials();
-                alert('Plik PDF został pomyślnie dodany!');
+                alert('Plik PDF został pomyślnie dodany i jest już widoczny na liście!');
             } catch (err) {
-                alert('Błąd podczas zapisywania PDF w Supabase: ' + err.message);
+                alert('Błąd podczas zapisywania PDF: ' + err.message);
                 console.error(err);
             } finally {
                 btnText.textContent = "Dodaj PDF";
             }
         }
 
-        // AKCJE I SŁUCHACZE ZDARZEŃ
+        // GŁÓWNY SŁUCHACZ PO ZAŁADOWANIU DOM
         window.addEventListener('DOMContentLoaded', async () => {
             document.documentElement.classList.add('dark');
 
@@ -529,7 +539,7 @@
 
             await loadDataFromSupabase();
 
-            // Słuchacz dodawania przedmiotu
+            // Przycisk Dodaj Przedmiot
             document.getElementById('addSubjectBtn').onclick = () => {
                 document.getElementById('newSubjectName').value = '';
                 document.getElementById('subjectModal').classList.remove('hidden');
@@ -546,7 +556,7 @@
 
                 const newSub = { id: 'subj-' + Date.now(), name: name, semester: sem };
                 
-                const { error } = await supabase.from('subjects').insert([newSub]);
+                const { error } = await supabaseClient.from('subjects').insert([newSub]);
                 if (error) {
                     alert('Błąd dodawania przedmiotu w Supabase: ' + error.message);
                     return;
@@ -555,10 +565,10 @@
                 state.subjects.push(newSub);
                 document.getElementById('subjectModal').classList.add('hidden');
                 renderSidebar();
-                alert('Przedmiot "' + name + '" został dodany!');
+                alert('Przedmiot "' + name + '" został pomyślnie dodany!');
             };
 
-            // Słuchacz nowej notatki
+            // Przycisk Nowa Notatka
             document.getElementById('openNewNoteBtn').onclick = () => openNoteEditor();
             document.getElementById('closeNoteModalBtn').onclick = () => document.getElementById('noteModal').classList.add('hidden');
             document.getElementById('cancelNoteBtn').onclick = () => document.getElementById('noteModal').classList.add('hidden');
@@ -572,7 +582,7 @@
 
                 const noteMat = { id, type: 'note', title, subject_id, content, created_at };
 
-                const { error } = await supabase.from('materials').upsert([noteMat]);
+                const { error } = await supabaseClient.from('materials').upsert([noteMat]);
                 if (error) {
                     alert('Błąd zapisywania notatki: ' + error.message);
                     return;
@@ -588,7 +598,7 @@
                 alert('Notatka "' + title + '" została zapisana w Supabase!');
             };
 
-            // Dodawanie PDF
+            // Wybór pliku PDF
             document.getElementById('pdfFileInput').onchange = async (e) => {
                 if (e.target.files.length > 0) {
                     await handlePdfUpload(e.target.files[0]);
@@ -596,7 +606,7 @@
                 }
             };
 
-            // Przełączanie filtrów
+            // Obsługa filtrów i wyszukiwarki
             document.getElementById('semesterFilter').onchange = () => {
                 renderSidebar();
                 renderMaterials();
