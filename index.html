@@ -47,7 +47,7 @@
         .dark .ql-stroke { stroke: #9ca3af !important; }
         .dark .ql-fill { fill: #9ca3af !important; }
         .dark .ql-picker { color: #9ca3af !important; }
-        .ql-editor { min-height: 200px; }
+        .ql-editor { min-height: 180px; }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 h-full flex flex-col font-sans transition-colors duration-200">
@@ -78,55 +78,70 @@
         </div>
     </div>
 
-    <!-- GLÓWNA APLIKACJA (UKRYTA PRZED ZALOGOWANIEM) -->
+    <!-- GLÓWNA APLIKACJA -->
     <div id="appContainer" class="hidden h-full flex flex-col">
 
         <!-- Top Bar Navigation -->
-        <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm shrink-0">
+            <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
+                
+                <!-- Toggle Sidebar Mobile Button -->
+                <button id="mobileMenuToggleBtn" type="button" class="md:hidden p-2 text-gray-300 hover:text-white rounded-lg focus:outline-none">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+
                 <!-- App Logo -->
-                <div class="flex items-center space-x-3 cursor-pointer" id="appLogoHome">
-                    <div class="bg-gradient-to-tr from-brand-600 to-indigo-600 text-white p-2.5 rounded-xl shadow-md">
-                        <i class="fa-solid fa-book-open text-xl"></i>
+                <div class="flex items-center space-x-2.5 cursor-pointer" id="appLogoHome">
+                    <div class="bg-gradient-to-tr from-brand-600 to-indigo-600 text-white p-2 rounded-xl shadow-md">
+                        <i class="fa-solid fa-book-open text-lg sm:text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="font-bold text-lg leading-tight tracking-tight">StudyHub <span class="text-brand-600 dark:text-brand-500">PDF & Notes</span></h1>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Twoje wirtualne biurko na studia</p>
+                        <h1 class="font-bold text-base sm:text-lg leading-tight tracking-tight">StudyHub <span class="text-brand-600 dark:text-brand-500">Notes</span></h1>
                     </div>
                 </div>
 
                 <!-- Global Search Bar -->
-                <div class="flex-1 max-w-md">
+                <div class="flex-1 max-w-xs sm:max-w-md">
                     <div class="relative flex items-center">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400"></i>
-                        <input type="text" id="globalSearchInput" placeholder="Szukaj materiałów..." 
-                               class="w-full pl-10 pr-9 py-2 text-sm bg-gray-100 dark:bg-gray-700 border-none rounded-xl focus:ring-2 focus:ring-brand-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 transition">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 text-gray-400 text-xs sm:text-sm"></i>
+                        <input type="text" id="globalSearchInput" placeholder="Szukaj..." 
+                               class="w-full pl-8 sm:pl-10 pr-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-gray-100 dark:bg-gray-700 border-none rounded-xl focus:ring-2 focus:ring-brand-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 transition">
                     </div>
                 </div>
 
                 <!-- Header Controls -->
-                <div class="flex items-center space-x-2">
-                    <button id="themeToggleBtn" type="button" title="Tryb Ciemny/Jasny" class="p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
-                        <i class="fa-solid fa-moon dark:hidden text-lg"></i>
-                        <i class="fa-solid fa-sun hidden dark:block text-lg text-amber-400"></i>
+                <div class="flex items-center space-x-1 sm:space-x-2">
+                    <button id="themeToggleBtn" type="button" title="Tryb Ciemny/Jasny" class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
+                        <i class="fa-solid fa-moon dark:hidden text-base"></i>
+                        <i class="fa-solid fa-sun hidden dark:block text-base text-amber-400"></i>
                     </button>
-                    <button id="logoutBtn" type="button" title="Wyloguj" class="p-2.5 text-gray-400 hover:text-red-400 rounded-xl transition">
-                        <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                    <button id="logoutBtn" type="button" title="Wyloguj" class="p-2 text-gray-400 hover:text-red-400 rounded-xl transition">
+                        <i class="fa-solid fa-right-from-bracket text-base"></i>
                     </button>
                 </div>
             </div>
         </header>
 
         <!-- Main Content Container -->
-        <div class="flex-1 flex overflow-hidden max-w-7xl w-full mx-auto p-2 sm:p-4 gap-4">
+        <div class="flex-1 flex overflow-hidden max-w-7xl w-full mx-auto p-2 sm:p-4 gap-4 relative">
             
-            <!-- Sidebar Navigation -->
-            <aside class="w-64 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 flex flex-col shrink-0 hidden md:flex shadow-sm">
-                <div class="flex items-center justify-between mb-3">
+            <!-- MOBILNE MENU OVERLAY / BACKDROP -->
+            <div id="mobileBackdrop" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden transition-opacity"></div>
+
+            <!-- Sidebar Navigation (Desktop & Mobile Drawer) -->
+            <aside id="sidebarNav" class="fixed md:static inset-y-0 left-0 w-72 md:w-64 bg-white dark:bg-gray-800 rounded-r-2xl md:rounded-2xl border-r md:border border-gray-200 dark:border-gray-700 p-4 flex flex-col shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl md:shadow-sm">
+                
+                <div class="flex items-center justify-between mb-4 md:mb-3">
                     <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Przedmioty</h2>
-                    <button id="addSubjectBtn" type="button" class="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400 font-bold flex items-center gap-1 cursor-pointer">
-                        <i class="fa-solid fa-plus"></i> Dodaj
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button id="addSubjectBtn" type="button" class="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400 font-bold flex items-center gap-1 cursor-pointer">
+                            <i class="fa-solid fa-plus"></i> Dodaj
+                        </button>
+                        <!-- Close mobile menu button -->
+                        <button id="closeMobileMenuBtn" type="button" class="md:hidden text-gray-400 hover:text-white p-1">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Semester Dropdown Filter -->
@@ -166,21 +181,20 @@
             <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
                 
                 <!-- Dashboard View Header -->
-                <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-3 items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
+                <div class="p-3 sm:p-5 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-2.5 items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
                     <div>
-                        <h2 id="currentSubjectTitle" class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <h2 id="currentSubjectTitle" class="text-base sm:text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <i class="fa-solid fa-layer-group text-brand-600"></i> Wszystkie Materiały
                         </h2>
-                        <p id="currentSubjectSubtitle" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Pliki PDF oraz zapisane notatki studenckie</p>
                     </div>
 
                     <!-- Add Actions -->
-                    <div class="flex items-center space-x-2">
-                        <button id="openNewNoteBtn" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                    <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                        <button id="openNewNoteBtn" type="button" class="flex-1 sm:flex-initial justify-center bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
                             <i class="fa-solid fa-pen-to-square"></i>
-                            <span>Nowa Notatka</span>
+                            <span>Notatka</span>
                         </button>
-                        <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-1.5 cursor-pointer shadow-sm">
+                        <label class="flex-1 sm:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-1.5 cursor-pointer shadow-sm">
                             <i class="fa-solid fa-file-circle-plus"></i>
                             <span id="uploadBtnText">Dodaj PDF</span>
                             <input type="file" id="pdfFileInput" accept="application/pdf" class="hidden">
@@ -189,31 +203,31 @@
                 </div>
 
                 <!-- Content Filter Tabs -->
-                <div class="px-5 pt-3 flex items-center space-x-4 border-b border-gray-100 dark:border-gray-700 text-sm">
-                    <button id="tabAll" type="button" class="filter-tab pb-2.5 font-bold text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400">
+                <div class="px-3 sm:px-5 pt-3 flex items-center space-x-4 border-b border-gray-100 dark:border-gray-700 text-xs sm:text-sm">
+                    <button id="tabAll" type="button" class="filter-tab pb-2 font-bold text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400">
                         Wszystko (<span id="cntAll">0</span>)
                     </button>
-                    <button id="tabPdfs" type="button" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
-                        Pliki PDF (<span id="cntPdfs">0</span>)
+                    <button id="tabPdfs" type="button" class="filter-tab pb-2 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                        PDF-y (<span id="cntPdfs">0</span>)
                     </button>
-                    <button id="tabNotes" type="button" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                    <button id="tabNotes" type="button" class="filter-tab pb-2 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
                         Notatki (<span id="cntNotes">0</span>)
                     </button>
                 </div>
 
                 <!-- Material Card Grid -->
-                <div class="flex-1 overflow-y-auto p-4 sm:p-5">
-                    <div id="materialsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="flex-1 overflow-y-auto p-3 sm:p-5">
+                    <div id="materialsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         <!-- Loaded dynamically -->
                     </div>
 
                     <!-- Empty State -->
-                    <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
-                        <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-2xl flex items-center justify-center mb-3 text-2xl">
+                    <div id="emptyState" class="hidden flex-col items-center justify-center py-12 text-center">
+                        <div class="w-14 h-14 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-2xl flex items-center justify-center mb-3 text-xl">
                             <i class="fa-solid fa-folder-open"></i>
                         </div>
-                        <h3 class="text-base font-bold text-gray-800 dark:text-gray-200">Brak materiałów</h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 max-w-xs mt-1 mb-4">Dodaj nowy plik PDF lub stwórz pierwszą notatkę.</p>
+                        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-200">Brak materiałów</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 max-w-xs mt-1 mb-4">Dodaj plik PDF lub nową notatkę.</p>
                     </div>
                 </div>
             </main>
@@ -222,8 +236,8 @@
 
     <!-- MODAL: Subject Creation -->
     <div id="subjectModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-bold mb-4 text-white">Dodaj nowy przedmiot</h3>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+            <h3 class="text-base sm:text-lg font-bold mb-4 text-white">Dodaj nowy przedmiot</h3>
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 mb-1">Nazwa przedmiotu</label>
@@ -250,13 +264,13 @@
     </div>
 
     <!-- MODAL: Note Editor -->
-    <div id="noteModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div id="noteModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
         <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <h3 id="noteModalHeader" class="text-lg font-bold">Edytor Notatek</h3>
+            <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h3 id="noteModalHeader" class="text-base sm:text-lg font-bold">Edytor Notatek</h3>
                 <button id="closeNoteModalBtn" type="button" class="text-gray-400 hover:text-gray-200 text-xl"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+            <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
                 <input type="hidden" id="noteIdInput">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -274,7 +288,7 @@
                     <div id="quillEditor" class="bg-gray-900 text-white rounded-xl"></div>
                 </div>
             </div>
-            <div class="px-6 py-4 bg-gray-800 border-t border-gray-700 flex items-center justify-end space-x-2">
+            <div class="px-4 sm:px-6 py-3 sm:py-4 bg-gray-800 border-t border-gray-700 flex items-center justify-end space-x-2">
                 <button id="cancelNoteBtn" type="button" class="px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-xl">Anuluj</button>
                 <button id="saveNoteBtn" type="button" class="px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm">Zapisz Notatkę</button>
             </div>
@@ -283,17 +297,17 @@
 
     <!-- MODAL: PDF Viewer -->
     <div id="pdfViewerModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex flex-col p-2 sm:p-4">
-        <div class="bg-gray-800 rounded-t-2xl px-4 py-3 flex items-center justify-between border-b border-gray-700">
-            <div class="flex items-center space-x-3 overflow-hidden">
-                <i class="fa-solid fa-file-pdf text-red-500 text-xl"></i>
-                <h3 id="pdfViewerTitle" class="font-bold text-sm sm:text-base text-white truncate">Podgląd Dokumentu PDF</h3>
+        <div class="bg-gray-800 rounded-t-2xl px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between border-b border-gray-700">
+            <div class="flex items-center space-x-2 sm:space-x-3 overflow-hidden">
+                <i class="fa-solid fa-file-pdf text-red-500 text-lg sm:text-xl"></i>
+                <h3 id="pdfViewerTitle" class="font-bold text-xs sm:text-base text-white truncate">Podgląd PDF</h3>
             </div>
             <div class="flex items-center space-x-2">
-                <a id="downloadPdfDirectBtn" download href="#" target="_blank" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
+                <a id="downloadPdfDirectBtn" download href="#" target="_blank" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
                     <i class="fa-solid fa-download"></i>
                     <span class="hidden sm:inline">Pobierz / Otwórz</span>
                 </a>
-                <button id="closePdfViewerBtn" type="button" class="text-gray-400 hover:text-gray-200 text-2xl px-2">
+                <button id="closePdfViewerBtn" type="button" class="text-gray-400 hover:text-gray-200 text-xl sm:text-2xl px-1.5">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -322,6 +336,22 @@
         function normalizeText(str) {
             if (!str) return '';
             return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l").replace(/Ł/g, "l");
+        }
+
+        function toggleMobileMenu(open = null) {
+            const sidebar = document.getElementById('sidebarNav');
+            const backdrop = document.getElementById('mobileBackdrop');
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+
+            const shouldOpen = open !== null ? open : !isOpen;
+
+            if (shouldOpen) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
         }
 
         async function loadDataFromSupabase() {
@@ -367,20 +397,30 @@
 
             const allBtn = document.createElement('button');
             allBtn.type = 'button';
-            allBtn.className = `w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${state.activeSubjectId === 'ALL' ? 'bg-brand-900/40 text-brand-300' : 'text-gray-400 hover:bg-gray-700'}`;
+            allBtn.className = `w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${state.activeSubjectId === 'ALL' ? 'bg-brand-900/40 text-brand-300' : 'text-gray-400 hover:bg-gray-700'}`;
             allBtn.innerHTML = `<span class="flex items-center gap-2"><i class="fa-solid fa-border-all"></i> Wszystkie Przedmioty</span>`;
-            allBtn.onclick = () => { state.activeSubjectId = 'ALL'; renderSidebar(); renderMaterials(); };
+            allBtn.onclick = () => { 
+                state.activeSubjectId = 'ALL'; 
+                renderSidebar(); 
+                renderMaterials(); 
+                toggleMobileMenu(false);
+            };
             nav.appendChild(allBtn);
 
             filteredSubjects.forEach(sub => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = `w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${state.activeSubjectId === sub.id ? 'bg-brand-900/40 text-brand-300' : 'text-gray-400 hover:bg-gray-700'}`;
+                btn.className = `w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${state.activeSubjectId === sub.id ? 'bg-brand-900/40 text-brand-300' : 'text-gray-400 hover:bg-gray-700'}`;
                 btn.innerHTML = `
                     <span class="truncate flex items-center gap-2"><i class="fa-solid fa-folder"></i> ${sub.name}</span>
                     <span class="text-[10px] opacity-60">Sem ${sub.semester || '1'}</span>
                 `;
-                btn.onclick = () => { state.activeSubjectId = sub.id; renderSidebar(); renderMaterials(); };
+                btn.onclick = () => { 
+                    state.activeSubjectId = sub.id; 
+                    renderSidebar(); 
+                    renderMaterials(); 
+                    toggleMobileMenu(false);
+                };
                 nav.appendChild(btn);
             });
         }
@@ -426,7 +466,7 @@
 
             filtered.forEach(mat => {
                 const card = document.createElement('div');
-                card.className = "bg-gray-800 rounded-2xl border border-gray-700 p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between group";
+                card.className = "bg-gray-800 rounded-2xl border border-gray-700 p-3.5 sm:p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between group";
 
                 const isPdf = mat.type === 'pdf';
                 const subjectObj = state.subjects.find(s => s.id === mat.subjectId);
@@ -434,18 +474,18 @@
 
                 card.innerHTML = `
                     <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${isPdf ? 'bg-red-950/60 text-red-300' : 'bg-indigo-950/60 text-indigo-300'}">
+                        <div class="flex items-center justify-between mb-2 sm:mb-3">
+                            <span class="px-2 py-0.5 sm:py-1 rounded-lg text-[10px] font-bold ${isPdf ? 'bg-red-950/60 text-red-300' : 'bg-indigo-950/60 text-indigo-300'}">
                                 <i class="fa-solid ${isPdf ? 'fa-file-pdf' : 'fa-note-sticky'} mr-1"></i> ${isPdf ? 'PDF' : 'NOTATKA'}
                             </span>
-                            <span class="text-[11px] text-gray-400">${mat.createdAt ? new Date(mat.createdAt).toLocaleDateString() : ''}</span>
+                            <span class="text-[10px] sm:text-[11px] text-gray-400">${mat.createdAt ? new Date(mat.createdAt).toLocaleDateString() : ''}</span>
                         </div>
-                        <h4 class="font-bold text-sm text-gray-100 line-clamp-2 mb-1 group-hover:text-brand-400 transition">${mat.title}</h4>
-                        <p class="text-xs text-gray-400 mb-3"><i class="fa-solid fa-graduation-cap text-[10px] mr-1"></i> ${subjectName}</p>
+                        <h4 class="font-bold text-xs sm:text-sm text-gray-100 line-clamp-2 mb-1 group-hover:text-brand-400 transition">${mat.title}</h4>
+                        <p class="text-[11px] sm:text-xs text-gray-400 mb-3"><i class="fa-solid fa-graduation-cap text-[10px] mr-1"></i> ${subjectName}</p>
                     </div>
 
-                    <div class="pt-3 border-t border-gray-700 flex items-center justify-between">
-                        <button type="button" class="open-mat-btn text-xs font-bold text-brand-400 hover:underline flex items-center gap-1 cursor-pointer">
+                    <div class="pt-2.5 border-t border-gray-700 flex items-center justify-between">
+                        <button type="button" class="open-mat-btn text-xs font-bold text-brand-400 hover:underline flex items-center gap-1 cursor-pointer py-1">
                             <i class="fa-solid fa-folder-open"></i> Otwórz
                         </button>
                         <button type="button" class="del-mat-btn text-xs text-gray-400 hover:text-red-500 transition p-1 cursor-pointer">
@@ -584,6 +624,11 @@
         // GŁÓWNY SŁUCHACZ DOM
         window.addEventListener('DOMContentLoaded', () => {
             document.documentElement.classList.add('dark');
+
+            // Podpięcie mobilnego paska bocznego
+            document.getElementById('mobileMenuToggleBtn').onclick = () => toggleMobileMenu(true);
+            document.getElementById('closeMobileMenuBtn').onclick = () => toggleMobileMenu(false);
+            document.getElementById('mobileBackdrop').onclick = () => toggleMobileMenu(false);
 
             // Podpięcie logowania
             document.getElementById('loginSubmitBtn').onclick = checkPassword;
