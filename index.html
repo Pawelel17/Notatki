@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="pl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyHub PDF & Notes</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PDF.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- html2pdf.js for exporting notes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+        .dark ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
+        
+        .dark .ql-toolbar { background-color: #1f2937; border-color: #374151 !important; border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; }
+        .dark .ql-container { border-color: #374151 !important; background-color: #111827; color: #f3f4f6; border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem; }
+        .dark .ql-stroke { stroke: #9ca3af !important; }
+        .dark .ql-fill { fill: #9ca3af !important; }
+        .dark .ql-picker { color: #9ca3af !important; }
+        .ql-editor { min-height: 200px; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 h-full flex flex-col font-sans transition-colors duration-200">
+
+    <!-- Top Bar Navigation -->
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- App Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" id="appLogoHome">
+                <div class="bg-gradient-to-tr from-brand-600 to-indigo-600 text-white p-2.5 rounded-xl shadow-md">
+                    <i class="fa-solid fa-book-open text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-tight">StudyHub <span class="text-brand-600 dark:text-brand-500">PDF & Notes</span></h1>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Twoje wirtualne biurko na studia</p>
+                </div>
+            </div>
+
+            <!-- Global Search Bar -->
+            <div class="flex-1 max-w-md">
+                <div class="relative flex items-center">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400"></i>
+                    <input type="text" id="globalSearchInput" placeholder="Szukaj (tytuł, treść, przedmiot, tagi, semestr)..." 
+                           class="w-full pl-10 pr-9 py-2 text-sm bg-gray-100 dark:bg-gray-700 border-none rounded-xl focus:ring-2 focus:ring-brand-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 transition">
+                    <button id="clearSearchBtn" title="Wyczyść wyszukiwanie" class="hidden absolute right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="flex items-center space-x-2">
+                <button id="backupModalBtn" title="Kopia Zapasowa (Eksport/Import)" class="p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
+                    <i class="fa-solid fa-cloud-arrow-down text-lg"></i>
+                </button>
+                <button id="helpGuideBtn" title="Instrukcja Vercel & GitHub" class="p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
+                    <i class="fa-solid fa-circle-question text-lg"></i>
+                </button>
+                <button id="themeToggleBtn" title="Tryb Ciemny/Jasny" class="p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
+                    <i class="fa-solid fa-moon dark:hidden text-lg"></i>
+                    <i class="fa-solid fa-sun hidden dark:block text-lg text-amber-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <div class="flex-1 flex overflow-hidden max-w-7xl w-full mx-auto p-2 sm:p-4 gap-4">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 flex flex-col shrink-0 hidden md:flex shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Przedmioty</h2>
+                <button id="addSubjectBtn" title="Dodaj Przedmiot" class="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400 font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-plus"></i> Dodaj
+                </button>
+            </div>
+
+            <!-- Semester Dropdown Filter -->
+            <div class="mb-3">
+                <label class="block text-[10px] font-bold uppercase text-gray-400 mb-1">Filtruj wg Semestru</label>
+                <select id="semesterFilter" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-xs rounded-xl px-3 py-2 font-medium">
+                    <option value="ALL">Wszystkie Semestry</option>
+                    <option value="1">Semestr 1</option>
+                    <option value="2">Semestr 2</option>
+                    <option value="3">Semestr 3</option>
+                    <option value="4">Semestr 4</option>
+                    <option value="5">Semestr 5</option>
+                    <option value="6">Semestr 6</option>
+                    <option value="7">Semestr 7</option>
+                </select>
+            </div>
+
+            <!-- Dynamic Subject Nav -->
+            <nav id="subjectNavList" class="flex-1 overflow-y-auto space-y-1 pr-1">
+                <!-- Loaded Dynamically -->
+            </nav>
+
+            <hr class="my-3 border-gray-200 dark:border-gray-700">
+
+            <!-- IndexedDB Info -->
+            <div class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                <div class="flex justify-between">
+                    <span>Pamięć Bazy:</span>
+                    <span id="dbSizeText" class="font-semibold text-gray-700 dark:text-gray-300">0 MB</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                    <div id="dbBar" class="bg-brand-500 h-1.5 rounded-full" style="width: 2%"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+            
+            <!-- Dashboard View Header -->
+            <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-3 items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
+                <div>
+                    <h2 id="currentSubjectTitle" class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-brand-600"></i> Wszystkie Materiały
+                    </h2>
+                    <p id="currentSubjectSubtitle" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Pliki PDF oraz zapisane notatki studenckie</p>
+                </div>
+
+                <!-- Add Actions -->
+                <div class="flex items-center space-x-2">
+                    <button id="openNewNoteBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-1.5 shadow-sm">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>Nowa Notatka</span>
+                    </button>
+                    <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-1.5 cursor-pointer shadow-sm">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                        <span>Dodaj PDF</span>
+                        <input type="file" id="pdfFileInput" accept="application/pdf" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Active Search Status Banner -->
+            <div id="searchStatusBanner" class="hidden bg-brand-50 dark:bg-brand-950/30 border-b border-brand-200 dark:border-brand-900 px-5 py-2 flex items-center justify-between text-xs text-brand-800 dark:text-brand-300">
+                <div class="flex items-center gap-2 truncate">
+                    <i class="fa-solid fa-filter"></i>
+                    <span>Wyniki wyszukiwania dla: <strong id="searchQueryDisplay"></strong></span>
+                    <span id="searchResultCountBadge" class="bg-brand-200 dark:bg-brand-800 text-brand-900 dark:text-brand-100 font-bold px-2 py-0.5 rounded-full text-[10px]">0</span>
+                </div>
+                <button id="resetSearchFiltersBtn" class="font-bold underline hover:text-brand-600 shrink-0">Wyczyść filtr</button>
+            </div>
+
+            <!-- Drag & Drop Zone -->
+            <div id="dropZone" class="hidden border-2 border-dashed border-brand-500 bg-brand-50/50 dark:bg-brand-950/20 m-4 p-8 rounded-2xl text-center transition">
+                <i class="fa-solid fa-file-pdf text-4xl text-brand-600 dark:text-brand-400 mb-2"></i>
+                <p class="font-semibold text-brand-900 dark:text-brand-200">Upuść plik PDF w tym miejscu, aby zapisać go w bazie!</p>
+            </div>
+
+            <!-- Content Filter Tabs -->
+            <div class="px-5 pt-3 flex items-center space-x-4 border-b border-gray-100 dark:border-gray-700 text-sm">
+                <button id="tabAll" class="filter-tab pb-2.5 font-bold text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400">
+                    Wszystko (<span id="cntAll">0</span>)
+                </button>
+                <button id="tabPdfs" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                    Pliki PDF (<span id="cntPdfs">0</span>)
+                </button>
+                <button id="tabNotes" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                    Notatki (<span id="cntNotes">0</span>)
+                </button>
+            </div>
+
+            <!-- Material Card Grid -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-5">
+                <div id="materialsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Loaded dynamically -->
+                </div>
+
+                <!-- Empty Search & Filter State -->
+                <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
+                    <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-2xl flex items-center justify-center mb-3 text-2xl">
+                        <i class="fa-solid fa-magnifying-glass-slash"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-gray-800 dark:text-gray-200">Brak pasujących wyników</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 max-w-xs mt-1 mb-4">Nie znaleziono materiałów spełniających zadane kryteria wyszukiwania.</p>
+                    <button id="emptyClearFiltersBtn" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition">
+                        Wyczyść wszystkie filtry
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: Subject Creation -->
+    <div id="subjectModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-bold mb-4">Dodaj nowy przedmiot</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Nazwa przedmiotu</label>
+                    <input type="text" id="newSubjectName" placeholder="np. Analiza Matematyczna" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Semestr</label>
+                    <select id="newSubjectSemester" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl px-3.5 py-2 text-sm">
+                        <option value="1">Semestr 1</option>
+                        <option value="2">Semestr 2</option>
+                        <option value="3">Semestr 3</option>
+                        <option value="4">Semestr 4</option>
+                        <option value="5">Semestr 5</option>
+                        <option value="6">Semestr 6</option>
+                        <option value="7">Semestr 7</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-2">
+                <button id="cancelSubjectBtn" class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl">Anuluj</button>
+                <button id="saveSubjectBtn" class="px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm">Zapisz Przedmiot</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Note Editor -->
+    <div id="noteModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h3 id="noteModalHeader" class="text-lg font-bold">Edytor Notatek</h3>
+                <button id="closeNoteModalBtn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                <input type="hidden" id="noteIdInput">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Tytuł Notatki</label>
+                        <input type="text" id="noteTitleInput" placeholder="np. Wykład 3 - Pochodne funkcji" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Przedmiot</label>
+                        <select id="noteSubjectSelect" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-brand-500">
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Tagi (rozdziel przecinkami)</label>
+                    <input type="text" id="noteTagsInput" placeholder="egzamin, wzory, wyklad" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl px-3.5 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Treść notatki</label>
+                    <div id="quillEditor" class="bg-white dark:bg-gray-900 rounded-xl"></div>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <button id="exportNotePdfBtn" class="bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-100 px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-2">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>Pobierz jako PDF</span>
+                </button>
+                <div class="flex space-x-2">
+                    <button id="cancelNoteBtn" class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl">Anuluj</button>
+                    <button id="saveNoteBtn" class="px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm">Zapisz Notatkę</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PDF Viewer & Split View -->
+    <div id="pdfViewerModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex flex-col p-2 sm:p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-t-2xl px-4 py-3 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+            <div class="flex items-center space-x-3 overflow-hidden">
+                <i class="fa-solid fa-file-pdf text-red-500 text-xl"></i>
+                <h3 id="pdfViewerTitle" class="font-bold text-sm sm:text-base truncate">Podgląd Dokumentu PDF</h3>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button id="toggleSplitViewBtn" title="Tryb Podzielonego Ekranu (PDF + Notatki)" class="bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                    <i class="fa-solid fa-columns"></i>
+                    <span class="hidden sm:inline">Podziel Ekran</span>
+                </button>
+                <a id="downloadPdfDirectBtn" download href="#" class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-download"></i>
+                    <span class="hidden sm:inline">Pobierz</span>
+                </a>
+                <button id="closePdfViewerBtn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-2xl px-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- PDF View Workspace Container -->
+        <div class="flex-1 bg-gray-900 rounded-b-2xl overflow-hidden flex relative">
+            
+            <!-- Main PDF Renderer Box -->
+            <div id="pdfViewerLeftPane" class="flex-1 flex flex-col h-full bg-gray-900 relative">
+                <!-- Dual Engine Switcher Toolbar -->
+                <div class="bg-gray-800 text-white px-4 py-2 flex items-center justify-between text-xs border-b border-gray-700">
+                    <div class="flex items-center space-x-2">
+                        <span>Tryb podglądu:</span>
+                        <button id="engineNativeBtn" class="px-2.5 py-1 rounded bg-brand-600 font-bold">Wbudowany Embed</button>
+                        <button id="engineCanvasBtn" class="px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600">PDF.js Canvas Reader</button>
+                    </div>
+                    <!-- Canvas Toolbar -->
+                    <div id="canvasToolbar" class="hidden flex items-center space-x-2">
+                        <button id="pdfPrevPage" class="px-2 py-0.5 bg-gray-700 rounded"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span>Strona <span id="pdfNum">1</span> z <span id="pdfPageCount">1</span></span>
+                        <button id="pdfNextPage" class="px-2 py-0.5 bg-gray-700 rounded"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- Engine 1: Embed Object -->
+                <div id="nativeEmbedContainer" class="w-full h-full">
+                    <embed id="pdfEmbedElement" type="application/pdf" class="w-full h-full border-none">
+                </div>
+
+                <!-- Engine 2: Fallback Canvas Render -->
+                <div id="canvasRenderContainer" class="hidden flex-1 overflow-auto p-4 flex justify-center items-start">
+                    <canvas id="pdfCanvas" class="shadow-2xl max-w-full rounded bg-white"></canvas>
+                </div>
+            </div>
+
+            <!-- Split View: Notes Side Pane -->
+            <div id="pdfViewerRightPane" class="w-1/2 bg-white dark:bg-gray-800 border-l border-gray-700 flex flex-col h-full hidden">
+                <div class="p-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    <span class="font-bold text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">Notatnik do PDF</span>
+                    <button id="quickSaveSplitNoteBtn" class="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1 rounded-lg text-xs font-bold">Zapisz Notatkę</button>
+                </div>
+                <div class="p-4 flex-1 overflow-y-auto space-y-3">
+                    <input type="text" id="splitNoteTitle" placeholder="Tytuł notatki z tego PDF-a..." class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-1.5 text-sm">
+                    <div id="splitQuillEditor" class="bg-white dark:bg-gray-900 rounded-xl"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Backup / Sync -->
+    <div id="backupModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-bold mb-2">Synchronizacja i Kopia Zapasowa</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Przenoś całą swoją bazę studiów (wszystkie pliki PDF oraz notatki) pomiędzy komputerem, telefonem i tabletem.</p>
+            
+            <div class="space-y-4">
+                <button id="exportDataBtn" class="w-full bg-brand-600 hover:bg-brand-700 text-white p-3 rounded-xl text-sm font-semibold flex items-center justify-center space-x-2 shadow-sm">
+                    <i class="fa-solid fa-file-export"></i>
+                    <span>Eksportuj Całą Bazę (Pobierz Backup JSON)</span>
+                </button>
+
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
+                    <span class="flex-shrink mx-4 text-xs text-gray-400">LUB</span>
+                    <div class="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
+                </div>
+
+                <label class="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 p-3 rounded-xl text-sm font-semibold flex items-center justify-center space-x-2 cursor-pointer transition">
+                    <i class="fa-solid fa-file-import"></i>
+                    <span>Importuj Bazę z Pliku</span>
+                    <input type="file" id="importFileInput" accept=".json" class="hidden">
+                </label>
+            </div>
+
+            <div class="mt-6 text-right">
+                <button id="closeBackupModalBtn" class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl">Zamknij</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Guide Vercel & GitHub -->
+    <div id="guideModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+            <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-rocket text-brand-600"></i> Jak uruchomić na GitHub / Vercel?
+            </h3>
+            <div class="space-y-4 text-sm text-gray-600 dark:text-gray-300">
+                <p>Aplikacja jest jednoplikowym skryptem HTML, co oznacza, że wystarczy 1 minuta, aby była dostępna w internecie 24/7 na wszystkich Twoich urządzeniach!</p>
+                
+                <div class="bg-gray-50 dark:bg-gray-700/50 p-3.5 rounded-xl border border-gray-200 dark:border-gray-600 space-y-2">
+                    <h4 class="font-bold text-gray-900 dark:text-white">Opcja 1: Uruchomienie przez Vercel (Rekomendowane)</h4>
+                    <ol class="list-decimal pl-5 space-y-1 text-xs">
+                        <li>Zapisz kod tej strony na komputerze pod nazwą <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">index.html</code>.</li>
+                        <li>Stwórz darmowe konto na <strong>Vercel.com</strong>.</li>
+                        <li>Przeciągnij folder z plikiem <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">index.html</code> do panelu Vercel (lub połącz z repozytorium GitHub).</li>
+                        <li>Twój panel StudyHub będzie gotowy pod dedykowanym adresem URL!</li>
+                    </ol>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-700/50 p-3.5 rounded-xl border border-gray-200 dark:border-gray-600 space-y-2">
+                    <h4 class="font-bold text-gray-900 dark:text-white">Opcja 2: GitHub Pages</h4>
+                    <ol class="list-decimal pl-5 space-y-1 text-xs">
+                        <li>Utwórz nowe repozytorium na GitHubie (np. <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">notatki-studia</code>).</li>
+                        <li>Wgraj plik <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">index.html</code> do repozytorium.</li>
+                        <li>Wejdź w <strong>Settings -> Pages</strong>, wybierz gałąź <code class="bg-gray-200 dark:bg-gray-800 px-1 rounded">main</code> i kliknij <strong>Save</strong>.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="mt-6 text-right">
+                <button id="closeGuideModalBtn" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl">Rozumiem</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configure PDF.js Worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // IndexedDB Configuration
+        const DB_NAME = 'StudyHubDatabase';
+        const DB_VERSION = 1;
+        let db = null;
+
+        // Application State
+        let state = {
+            subjects: [],
+            materials: [],
+            activeSubjectId: 'ALL',
+            activeTab: 'ALL',
+            searchQuery: '',
+            currentPdfBlobUrl: null,
+            pdfDoc: null,
+            pdfPageNum: 1,
+            splitQuill: null,
+            mainQuill: null
+        };
+
+        // Utility: Polish String Normalizer (Removes accents / diacritics for search)
+        function normalizeText(str) {
+            if (!str) return '';
+            return str
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/ł/g, "l")
+                .replace(/Ł/g, "l");
+        }
+
+        // Open IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains('subjects')) {
+                        database.createObjectStore('subjects', { keyPath: 'id' });
+                    }
+                    if (!database.objectStoreNames.contains('materials')) {
+                        database.createObjectStore('materials', { keyPath: 'id' });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        // Database Helpers
+        function getAllFromDB(storeName) {
+            return new Promise((resolve) => {
+                const tx = db.transaction(storeName, 'readonly');
+                const store = tx.objectStore(storeName);
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result || []);
+            });
+        }
+
+        function saveToDB(storeName, item) {
+            return new Promise((resolve) => {
+                const tx = db.transaction(storeName, 'readwrite');
+                const store = tx.objectStore(storeName);
+                store.put(item);
+                tx.oncomplete = () => resolve();
+            });
+        }
+
+        function deleteFromDB(storeName, id) {
+            return new Promise((resolve) => {
+                const tx = db.transaction(storeName, 'readwrite');
+                const store = tx.objectStore(storeName);
+                store.delete(id);
+                tx.oncomplete = () => resolve();
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            
+            // Initialize Editors
+            state.mainQuill = new Quill('#quillEditor', {
+                theme: 'snow',
+                placeholder: 'Rozpocznij tworzenie czytelnych notatek...'
+            });
+
+            state.splitQuill = new Quill('#splitQuillEditor', {
+                theme: 'snow',
+                placeholder: 'Rób szybkie notatki w trakcie czytania PDF...'
+            });
+
+            // Initial Subjects setup if DB is empty
+            let savedSubjects = await getAllFromDB('subjects');
+            if (savedSubjects.length === 0) {
+                savedSubjects = [
+                    { id: 'subj-1', name: 'Analiza Matematyczna', semester: '1' },
+                    { id: 'subj-2', name: 'Programowanie w C++', semester: '1' },
+                    { id: 'subj-3', name: 'Bazy Danych', semester: '2' }
+                ];
+                for (const s of savedSubjects) await saveToDB('subjects', s);
+            }
+            state.subjects = savedSubjects;
+
+            // Load Materials
+            state.materials = await getAllFromDB('materials');
+
+            // Apply Saved Theme
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+
+            renderSidebar();
+            renderMaterials();
+            updateStorageMetrics();
+            attachEventListeners();
+        });
+
+        function renderSidebar() {
+            const nav = document.getElementById('subjectNavList');
+            const semFilter = document.getElementById('semesterFilter').value;
+            nav.innerHTML = '';
+
+            let filteredSubjects = state.subjects;
+            if (semFilter !== 'ALL') {
+                filteredSubjects = state.subjects.filter(s => s.semester === semFilter);
+            }
+
+            // All subjects item
+            const allBtn = document.createElement('button');
+            allBtn.className = `w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition ${state.activeSubjectId === 'ALL' ? 'bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`;
+            allBtn.innerHTML = `<span class="flex items-center gap-2"><i class="fa-solid fa-border-all"></i> Wszystkie Przedmioty</span>`;
+            allBtn.onclick = () => { state.activeSubjectId = 'ALL'; renderSidebar(); renderMaterials(); };
+            nav.appendChild(allBtn);
+
+            filteredSubjects.forEach(sub => {
+                const btn = document.createElement('button');
+                btn.className = `w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition ${state.activeSubjectId === sub.id ? 'bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`;
+                btn.innerHTML = `
+                    <span class="truncate flex items-center gap-2"><i class="fa-solid fa-folder"></i> ${sub.name}</span>
+                    <span class="text-[10px] opacity-60">Sem ${sub.semester}</span>
+                `;
+                btn.onclick = () => { state.activeSubjectId = sub.id; renderSidebar(); renderMaterials(); };
+                nav.appendChild(btn);
+            });
+        }
+
+        function renderMaterials() {
+            const grid = document.getElementById('materialsGrid');
+            const emptyState = document.getElementById('emptyState');
+            const searchBanner = document.getElementById('searchStatusBanner');
+            const searchQueryDisplay = document.getElementById('searchQueryDisplay');
+            const searchResultCountBadge = document.getElementById('searchResultCountBadge');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+            grid.innerHTML = '';
+
+            const normalizedQuery = normalizeText(state.searchQuery.trim());
+
+            // Toggle clear button on input
+            if (state.searchQuery.trim().length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+                searchBanner.classList.remove('hidden');
+                searchQueryDisplay.textContent = `"${state.searchQuery}"`;
+            } else {
+                clearSearchBtn.classList.add('hidden');
+                searchBanner.classList.add('hidden');
+            }
+
+            // Filtering pipeline
+            let filtered = state.materials.filter(mat => {
+                const subjectObj = state.subjects.find(s => s.id === mat.subjectId);
+                const subjectName = subjectObj ? subjectObj.name : '';
+                const semesterText = subjectObj ? `semestr ${subjectObj.semester}` : '';
+
+                // 1. Subject filter
+                if (state.activeSubjectId !== 'ALL' && mat.subjectId !== state.activeSubjectId) {
+                    return false;
+                }
+
+                // 2. Semester Filter from Sidebar
+                const semFilter = document.getElementById('semesterFilter').value;
+                if (semFilter !== 'ALL' && subjectObj && subjectObj.semester !== semFilter) {
+                    return false;
+                }
+
+                // 3. Search query filter (Normalized across multiple attributes)
+                if (normalizedQuery.length > 0) {
+                    const matchTitle = normalizeText(mat.title).includes(normalizedQuery);
+                    const matchSubject = normalizeText(subjectName).includes(normalizedQuery);
+                    const matchSemester = normalizeText(semesterText).includes(normalizedQuery);
+                    const matchTags = mat.tags && mat.tags.some(t => normalizeText(t).includes(normalizedQuery));
+                    
+                    // Strip HTML tags for note content search
+                    let matchContent = false;
+                    if (mat.content) {
+                        const plainTextContent = mat.content.replace(/<[^>]*>?/gm, '');
+                        matchContent = normalizeText(plainTextContent).includes(normalizedQuery);
+                    }
+
+                    if (!matchTitle && !matchSubject && !matchSemester && !matchTags && !matchContent) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            // Update tab counts
+            const pdfsCount = filtered.filter(m => m.type === 'pdf').length;
+            const notesCount = filtered.filter(m => m.type === 'note').length;
+            document.getElementById('cntAll').textContent = filtered.length;
+            document.getElementById('cntPdfs').textContent = pdfsCount;
+            document.getElementById('cntNotes').textContent = notesCount;
+
+            // 4. Tab Type filter
+            if (state.activeTab === 'PDF') filtered = filtered.filter(m => m.type === 'pdf');
+            if (state.activeTab === 'NOTE') filtered = filtered.filter(m => m.type === 'note');
+
+            searchResultCountBadge.textContent = `${filtered.length} elementów`;
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+            }
+
+            // Render material cards
+            filtered.forEach(mat => {
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between group";
+
+                const isPdf = mat.type === 'pdf';
+                const subjectObj = state.subjects.find(s => s.id === mat.subjectId);
+                const subjectName = subjectObj ? subjectObj.name : 'Ogólne';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${isPdf ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300' : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'}">
+                                <i class="fa-solid ${isPdf ? 'fa-file-pdf' : 'fa-note-sticky'} mr-1"></i> ${isPdf ? 'PDF' : 'NOTATKA'}
+                            </span>
+                            <span class="text-[11px] text-gray-400">${new Date(mat.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <h4 class="font-bold text-sm text-gray-900 dark:text-gray-100 line-clamp-2 mb-1 group-hover:text-brand-600 transition">${mat.title}</h4>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3"><i class="fa-solid fa-graduation-cap text-[10px] mr-1"></i> ${subjectName}</p>
+                        
+                        ${mat.tags && mat.tags.length ? `
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                ${mat.tags.map(t => `<button class="tag-click-btn bg-gray-100 dark:bg-gray-700 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-gray-600 dark:text-gray-300 text-[10px] px-2 py-0.5 rounded-md transition" data-tag="${t}">#${t}</button>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-100 dark:border-gray-700/60 flex items-center justify-between">
+                        <button class="open-mat-btn text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-folder-open"></i> Otwórz
+                        </button>
+                        <button class="del-mat-btn text-xs text-gray-400 hover:text-red-500 transition p-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+
+                // Interactive Tag Filter Click
+                card.querySelectorAll('.tag-click-btn').forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        const tag = btn.getAttribute('data-tag');
+                        document.getElementById('globalSearchInput').value = tag;
+                        state.searchQuery = tag;
+                        renderMaterials();
+                    };
+                });
+
+                card.querySelector('.open-mat-btn').onclick = () => openMaterial(mat);
+                card.querySelector('.del-mat-btn').onclick = async (e) => {
+                    e.stopPropagation();
+                    if(confirm(`Czy na pewno chcesz usunąć "${mat.title}"?`)) {
+                        await deleteFromDB('materials', mat.id);
+                        state.materials = state.materials.filter(m => m.id !== mat.id);
+                        renderMaterials();
+                        updateStorageMetrics();
+                    }
+                };
+
+                grid.appendChild(card);
+            });
+        }
+
+        function openMaterial(mat) {
+            if (mat.type === 'pdf') {
+                openPdfViewer(mat);
+            } else {
+                openNoteEditor(mat);
+            }
+        }
+
+        function openPdfViewer(mat) {
+            document.getElementById('pdfViewerTitle').textContent = mat.title;
+            
+            let blob;
+            if (mat.fileBlob instanceof Blob) {
+                blob = mat.fileBlob;
+            } else if (mat.fileArrayBuffer) {
+                blob = new Blob([mat.fileArrayBuffer], { type: 'application/pdf' });
+            }
+
+            if (state.currentPdfBlobUrl) {
+                URL.revokeObjectURL(state.currentPdfBlobUrl);
+            }
+
+            state.currentPdfBlobUrl = URL.createObjectURL(blob);
+
+            const embedEl = document.getElementById('pdfEmbedElement');
+            embedEl.src = state.currentPdfBlobUrl;
+
+            const downloadBtn = document.getElementById('downloadPdfDirectBtn');
+            downloadBtn.href = state.currentPdfBlobUrl;
+            downloadBtn.download = mat.title.endsWith('.pdf') ? mat.title : `${mat.title}.pdf`;
+
+            loadPdfJsEngine(blob);
+            document.getElementById('pdfViewerModal').classList.remove('hidden');
+        }
+
+        async function loadPdfJsEngine(blob) {
+            try {
+                const arrayBuffer = await blob.arrayBuffer();
+                state.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                document.getElementById('pdfPageCount').textContent = state.pdfDoc.numPages;
+                state.pdfPageNum = 1;
+                renderPdfCanvasPage(state.pdfPageNum);
+            } catch (err) {
+                console.warn('PDF.js render error:', err);
+            }
+        }
+
+        async function renderPdfCanvasPage(num) {
+            if (!state.pdfDoc) return;
+            const page = await state.pdfDoc.getPage(num);
+            const canvas = document.getElementById('pdfCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const viewport = page.getViewport({ scale: 1.3 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+            document.getElementById('pdfNum').textContent = num;
+        }
+
+        function openNoteEditor(mat = null) {
+            const modal = document.getElementById('noteModal');
+            const subjectSelect = document.getElementById('noteSubjectSelect');
+            
+            subjectSelect.innerHTML = state.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+            if (mat) {
+                document.getElementById('noteModalHeader').textContent = 'Edycja Notatki';
+                document.getElementById('noteIdInput').value = mat.id;
+                document.getElementById('noteTitleInput').value = mat.title;
+                document.getElementById('noteTagsInput').value = mat.tags ? mat.tags.join(', ') : '';
+                subjectSelect.value = mat.subjectId;
+                state.mainQuill.root.innerHTML = mat.content || '';
+            } else {
+                document.getElementById('noteModalHeader').textContent = 'Nowa Notatka';
+                document.getElementById('noteIdInput').value = '';
+                document.getElementById('noteTitleInput').value = '';
+                document.getElementById('noteTagsInput').value = '';
+                if (state.activeSubjectId !== 'ALL') subjectSelect.value = state.activeSubjectId;
+                state.mainQuill.root.innerHTML = '';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        async function handlePdfUpload(file) {
+            if (!file || file.type !== 'application/pdf') {
+                alert('Proszę wybrać poprawny plik w formacie PDF.');
+                return;
+            }
+
+            const arrayBuffer = await file.arrayBuffer();
+            const newMaterial = {
+                id: 'pdf-' + Date.now(),
+                type: 'pdf',
+                title: file.name.replace(/\.[^/.]+$/, ""),
+                fileArrayBuffer: arrayBuffer,
+                subjectId: state.activeSubjectId === 'ALL' ? (state.subjects[0]?.id || 'general') : state.activeSubjectId,
+                tags: ['pdf', 'studia'],
+                createdAt: new Date().toISOString()
+            };
+
+            await saveToDB('materials', newMaterial);
+            state.materials.push(newMaterial);
+            renderMaterials();
+            updateStorageMetrics();
+        }
+
+        async function updateStorageMetrics() {
+            let totalBytes = 0;
+            state.materials.forEach(m => {
+                if (m.fileArrayBuffer) totalBytes += m.fileArrayBuffer.byteLength;
+                if (m.content) totalBytes += m.content.length * 2;
+            });
+            const mb = (totalBytes / (1024 * 1024)).toFixed(2);
+            document.getElementById('dbSizeText').textContent = `${mb} MB`;
+            document.getElementById('dbBar').style.width = `${Math.min(100, (mb / 500) * 100)}%`;
+        }
+
+        function attachEventListeners() {
+            // Theme Switcher
+            document.getElementById('themeToggleBtn').onclick = () => {
+                document.documentElement.classList.toggle('dark');
+                localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            };
+
+            // Real-Time Search Listeners
+            const searchInput = document.getElementById('globalSearchInput');
+            const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+            searchInput.addEventListener('input', (e) => {
+                state.searchQuery = e.target.value;
+                renderMaterials();
+            });
+
+            const clearAllFilters = () => {
+                searchInput.value = '';
+                state.searchQuery = '';
+                state.activeSubjectId = 'ALL';
+                state.activeTab = 'ALL';
+                document.getElementById('semesterFilter').value = 'ALL';
+                
+                document.querySelectorAll('.filter-tab').forEach(b => {
+                    b.classList.remove('text-brand-600', 'dark:text-brand-400', 'border-b-2', 'border-brand-600', 'font-bold');
+                    b.classList.add('text-gray-500', 'font-medium');
+                });
+                document.getElementById('tabAll').classList.add('text-brand-600', 'dark:text-brand-400', 'border-b-2', 'border-brand-600', 'font-bold');
+
+                renderSidebar();
+                renderMaterials();
+            };
+
+            clearSearchBtn.onclick = clearAllFilters;
+            document.getElementById('resetSearchFiltersBtn').onclick = clearAllFilters;
+            document.getElementById('emptyClearFiltersBtn').onclick = clearAllFilters;
+
+            // Drag and Drop Zone
+            const dropZone = document.getElementById('dropZone');
+            window.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.remove('hidden'); });
+            dropZone.addEventListener('dragleave', (e) => { if (e.relatedTarget === null) dropZone.classList.add('hidden'); });
+            dropZone.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                dropZone.classList.add('hidden');
+                if (e.dataTransfer.files.length > 0) {
+                    await handlePdfUpload(e.dataTransfer.files[0]);
+                }
+            });
+
+            // PDF Upload Input
+            document.getElementById('pdfFileInput').onchange = async (e) => {
+                if (e.target.files.length > 0) {
+                    await handlePdfUpload(e.target.files[0]);
+                    e.target.value = '';
+                }
+            };
+
+            // Tab Controls
+            document.getElementById('tabAll').onclick = function() { setTab('ALL', this); };
+            document.getElementById('tabPdfs').onclick = function() { setTab('PDF', this); };
+            document.getElementById('tabNotes').onclick = function() { setTab('NOTE', this); };
+
+            function setTab(tab, element) {
+                state.activeTab = tab;
+                document.querySelectorAll('.filter-tab').forEach(b => {
+                    b.classList.remove('text-brand-600', 'dark:text-brand-400', 'border-b-2', 'border-brand-600', 'font-bold');
+                    b.classList.add('text-gray-500', 'font-medium');
+                });
+                element.classList.add('text-brand-600', 'dark:text-brand-400', 'border-b-2', 'border-brand-600', 'font-bold');
+                element.classList.remove('text-gray-500', 'font-medium');
+                renderMaterials();
+            }
+
+            // Semester Filter Change
+            document.getElementById('semesterFilter').onchange = () => {
+                renderSidebar();
+                renderMaterials();
+            };
+
+            // Add Subject Modal
+            document.getElementById('addSubjectBtn').onclick = () => document.getElementById('subjectModal').classList.remove('hidden');
+            document.getElementById('cancelSubjectBtn').onclick = () => document.getElementById('subjectModal').classList.add('hidden');
+            document.getElementById('saveSubjectBtn').onclick = async () => {
+                const name = document.getElementById('newSubjectName').value.trim();
+                const sem = document.getElementById('newSubjectSemester').value;
+                if (!name) return alert('Wpisz nazwę przedmiotu');
+
+                const newSub = { id: 'subj-' + Date.now(), name: name, semester: sem };
+                await saveToDB('subjects', newSub);
+                state.subjects.push(newSub);
+                document.getElementById('newSubjectName').value = '';
+                document.getElementById('subjectModal').classList.add('hidden');
+                renderSidebar();
+            };
+
+            // Note Modal Controls
+            document.getElementById('openNewNoteBtn').onclick = () => openNoteEditor();
+            document.getElementById('closeNoteModalBtn').onclick = () => document.getElementById('noteModal').classList.add('hidden');
+            document.getElementById('cancelNoteBtn').onclick = () => document.getElementById('noteModal').classList.add('hidden');
+            
+            document.getElementById('saveNoteBtn').onclick = async () => {
+                const id = document.getElementById('noteIdInput').value || ('note-' + Date.now());
+                const title = document.getElementById('noteTitleInput').value.trim() || 'Bez tytułu';
+                const subjectId = document.getElementById('noteSubjectSelect').value;
+                const tagsStr = document.getElementById('noteTagsInput').value;
+                const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()) : [];
+                const content = state.mainQuill.root.innerHTML;
+
+                const noteMat = {
+                    id, type: 'note', title, subjectId, tags, content, createdAt: new Date().toISOString()
+                };
+
+                await saveToDB('materials', noteMat);
+                
+                const idx = state.materials.findIndex(m => m.id === id);
+                if (idx >= 0) state.materials[idx] = noteMat;
+                else state.materials.push(noteMat);
+
+                document.getElementById('noteModal').classList.add('hidden');
+                renderMaterials();
+                updateStorageMetrics();
+            };
+
+            // Export Note to PDF
+            document.getElementById('exportNotePdfBtn').onclick = () => {
+                const title = document.getElementById('noteTitleInput').value || 'Notatka';
+                const element = document.createElement('div');
+                element.style.padding = '20px';
+                element.innerHTML = `<h1>${title}</h1><hr><br>` + state.mainQuill.root.innerHTML;
+
+                html2pdf().set({
+                    margin: 10,
+                    filename: `${title}.pdf`,
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                }).from(element).save();
+            };
+
+            // PDF Engines Switcher
+            document.getElementById('engineNativeBtn').onclick = () => {
+                document.getElementById('nativeEmbedContainer').classList.remove('hidden');
+                document.getElementById('canvasRenderContainer').classList.add('hidden');
+                document.getElementById('canvasToolbar').classList.add('hidden');
+            };
+
+            document.getElementById('engineCanvasBtn').onclick = () => {
+                document.getElementById('nativeEmbedContainer').classList.add('hidden');
+                document.getElementById('canvasRenderContainer').classList.remove('hidden');
+                document.getElementById('canvasToolbar').classList.remove('hidden');
+            };
+
+            document.getElementById('pdfPrevPage').onclick = () => {
+                if (state.pdfPageNum > 1) {
+                    state.pdfPageNum--;
+                    renderPdfCanvasPage(state.pdfPageNum);
+                }
+            };
+
+            document.getElementById('pdfNextPage').onclick = () => {
+                if (state.pdfDoc && state.pdfPageNum < state.pdfDoc.numPages) {
+                    state.pdfPageNum++;
+                    renderPdfCanvasPage(state.pdfPageNum);
+                }
+            };
+
+            // PDF Split Screen Toggle
+            document.getElementById('toggleSplitViewBtn').onclick = () => {
+                const rightPane = document.getElementById('pdfViewerRightPane');
+                rightPane.classList.toggle('hidden');
+            };
+
+            document.getElementById('quickSaveSplitNoteBtn').onclick = async () => {
+                const title = document.getElementById('splitNoteTitle').value.trim() || 'Notatka z PDF';
+                const content = state.splitQuill.root.innerHTML;
+                
+                const noteMat = {
+                    id: 'note-' + Date.now(),
+                    type: 'note',
+                    title,
+                    subjectId: state.activeSubjectId === 'ALL' ? (state.subjects[0]?.id || 'general') : state.activeSubjectId,
+                    tags: ['split-pdf'],
+                    content,
+                    createdAt: new Date().toISOString()
+                };
+
+                await saveToDB('materials', noteMat);
+                state.materials.push(noteMat);
+                alert('Notatka została zapisana w Twojej bazie!');
+                renderMaterials();
+            };
+
+            document.getElementById('closePdfViewerBtn').onclick = () => {
+                document.getElementById('pdfViewerModal').classList.add('hidden');
+            };
+
+            // Backup & Sync Modal
+            document.getElementById('backupModalBtn').onclick = () => document.getElementById('backupModal').classList.remove('hidden');
+            document.getElementById('closeBackupModalBtn').onclick = () => document.getElementById('backupModal').classList.add('hidden');
+
+            // Export Entire Database JSON
+            document.getElementById('exportDataBtn').onclick = async () => {
+                const exportObj = {
+                    subjects: state.subjects,
+                    materials: []
+                };
+
+                for (const m of state.materials) {
+                    const item = { ...m };
+                    if (item.fileArrayBuffer) {
+                        const bytes = new Uint8Array(item.fileArrayBuffer);
+                        let binary = '';
+                        for (let i = 0; i < bytes.byteLength; i++) {
+                            binary += String.fromCharCode(bytes[i]);
+                        }
+                        item.fileBase64 = btoa(binary);
+                        delete item.fileArrayBuffer;
+                    }
+                    exportObj.materials.push(item);
+                }
+
+                const blob = new Blob([JSON.stringify(exportObj)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `StudyHub_Backup_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            // Import Database JSON
+            document.getElementById('importFileInput').onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = async (evt) => {
+                    try {
+                        const imported = JSON.parse(evt.target.result);
+                        if (imported.subjects && imported.materials) {
+                            for (const s of imported.subjects) await saveToDB('subjects', s);
+                            
+                            for (const m of imported.materials) {
+                                if (m.fileBase64) {
+                                    const binary = atob(m.fileBase64);
+                                    const bytes = new Uint8Array(binary.length);
+                                    for (let i = 0; i < binary.length; i++) {
+                                        bytes[i] = binary.charCodeAt(i);
+                                    }
+                                    m.fileArrayBuffer = bytes.buffer;
+                                    delete m.fileBase64;
+                                }
+                                await saveToDB('materials', m);
+                            }
+
+                            state.subjects = await getAllFromDB('subjects');
+                            state.materials = await getAllFromDB('materials');
+                            renderSidebar();
+                            renderMaterials();
+                            updateStorageMetrics();
+                            alert('Baza danych została pomyślnie zaimportowana!');
+                            document.getElementById('backupModal').classList.add('hidden');
+                        }
+                    } catch (err) {
+                        alert('Błąd odczytu pliku kopii zapasowej.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            // Help Guide Modal
+            document.getElementById('helpGuideBtn').onclick = () => document.getElementById('guideModal').classList.remove('hidden');
+            document.getElementById('closeGuideModalBtn').onclick = () => document.getElementById('guideModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
