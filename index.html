@@ -28,10 +28,6 @@
     </script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PDF.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <!-- html2pdf.js for exporting notes -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Quill Rich Text Editor -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
@@ -74,11 +70,8 @@
             <div class="flex-1 max-w-md">
                 <div class="relative flex items-center">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400"></i>
-                    <input type="text" id="globalSearchInput" placeholder="Szukaj (tytuł, treść, przedmiot, tagi, semestr)..." 
+                    <input type="text" id="globalSearchInput" placeholder="Szukaj materiałów..." 
                            class="w-full pl-10 pr-9 py-2 text-sm bg-gray-100 dark:bg-gray-700 border-none rounded-xl focus:ring-2 focus:ring-brand-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 transition">
-                    <button id="clearSearchBtn" title="Wyczyść wyszukiwanie" class="hidden absolute right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                        <i class="fa-solid fa-circle-xmark"></i>
-                    </button>
                 </div>
             </div>
 
@@ -99,7 +92,7 @@
         <aside class="w-64 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 flex flex-col shrink-0 hidden md:flex shadow-sm">
             <div class="flex items-center justify-between mb-3">
                 <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Przedmioty</h2>
-                <button id="addSubjectBtn" title="Dodaj Przedmiot" class="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400 font-bold flex items-center gap-1">
+                <button id="addSubjectBtn" type="button" class="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400 font-bold flex items-center gap-1 cursor-pointer">
                     <i class="fa-solid fa-plus"></i> Dodaj
                 </button>
             </div>
@@ -151,7 +144,7 @@
 
                 <!-- Add Actions -->
                 <div class="flex items-center space-x-2">
-                    <button id="openNewNoteBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-1.5 shadow-sm">
+                    <button id="openNewNoteBtn" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
                         <i class="fa-solid fa-pen-to-square"></i>
                         <span>Nowa Notatka</span>
                     </button>
@@ -165,13 +158,13 @@
 
             <!-- Content Filter Tabs -->
             <div class="px-5 pt-3 flex items-center space-x-4 border-b border-gray-100 dark:border-gray-700 text-sm">
-                <button id="tabAll" class="filter-tab pb-2.5 font-bold text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400">
+                <button id="tabAll" type="button" class="filter-tab pb-2.5 font-bold text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400">
                     Wszystko (<span id="cntAll">0</span>)
                 </button>
-                <button id="tabPdfs" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                <button id="tabPdfs" type="button" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
                     Pliki PDF (<span id="cntPdfs">0</span>)
                 </button>
-                <button id="tabNotes" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                <button id="tabNotes" type="button" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
                     Notatki (<span id="cntNotes">0</span>)
                 </button>
             </div>
@@ -182,10 +175,10 @@
                     <!-- Loaded dynamically -->
                 </div>
 
-                <!-- Empty Search & Filter State -->
+                <!-- Empty State -->
                 <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
                     <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-2xl flex items-center justify-center mb-3 text-2xl">
-                        <i class="fa-solid fa-magnifying-glass-slash"></i>
+                        <i class="fa-solid fa-folder-open"></i>
                     </div>
                     <h3 class="text-base font-bold text-gray-800 dark:text-gray-200">Brak materiałów</h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 max-w-xs mt-1 mb-4">Dodaj nowy plik PDF lub stwórz pierwszą notatkę.</p>
@@ -196,4 +189,447 @@
 
     <!-- MODAL: Subject Creation -->
     <div id="subjectModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max
+        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6 shadow-2xl border border-gray-200 dark:border-gray-700">
+            <h3 class="text-lg font-bold mb-4 text-white">Dodaj nowy przedmiot</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Nazwa przedmiotu</label>
+                    <input type="text" id="newSubjectName" placeholder="np. Analiza Matematyczna" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-3.5 py-2 text-sm text-white focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Semestr</label>
+                    <select id="newSubjectSemester" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-3.5 py-2 text-sm text-white">
+                        <option value="1">Semestr 1</option>
+                        <option value="2">Semestr 2</option>
+                        <option value="3">Semestr 3</option>
+                        <option value="4">Semestr 4</option>
+                        <option value="5">Semestr 5</option>
+                        <option value="6">Semestr 6</option>
+                        <option value="7">Semestr 7</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-2">
+                <button id="cancelSubjectBtn" type="button" class="px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-xl">Anuluj</button>
+                <button id="saveSubjectBtn" type="button" class="px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm">Zapisz Przedmiot</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Note Editor -->
+    <div id="noteModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h3 id="noteModalHeader" class="text-lg font-bold">Edytor Notatek</h3>
+                <button id="closeNoteModalBtn" type="button" class="text-gray-400 hover:text-gray-200 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                <input type="hidden" id="noteIdInput">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Tytuł Notatki</label>
+                        <input type="text" id="noteTitleInput" placeholder="np. Wykład 3 - Pochodne" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-3.5 py-2 text-sm text-white focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Przedmiot</label>
+                        <select id="noteSubjectSelect" class="w-full bg-gray-700 border border-gray-600 rounded-xl px-3.5 py-2 text-sm text-white focus:ring-2 focus:ring-brand-500">
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Treść notatki</label>
+                    <div id="quillEditor" class="bg-gray-900 text-white rounded-xl"></div>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-gray-800 border-t border-gray-700 flex items-center justify-end space-x-2">
+                <button id="cancelNoteBtn" type="button" class="px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 rounded-xl">Anuluj</button>
+                <button id="saveNoteBtn" type="button" class="px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-sm">Zapisz Notatkę</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PDF Viewer -->
+    <div id="pdfViewerModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex flex-col p-2 sm:p-4">
+        <div class="bg-gray-800 rounded-t-2xl px-4 py-3 flex items-center justify-between border-b border-gray-700">
+            <div class="flex items-center space-x-3 overflow-hidden">
+                <i class="fa-solid fa-file-pdf text-red-500 text-xl"></i>
+                <h3 id="pdfViewerTitle" class="font-bold text-sm sm:text-base text-white truncate">Podgląd Dokumentu PDF</h3>
+            </div>
+            <div class="flex items-center space-x-2">
+                <a id="downloadPdfDirectBtn" download href="#" target="_blank" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-download"></i>
+                    <span class="hidden sm:inline">Pobierz / Otwórz</span>
+                </a>
+                <button id="closePdfViewerBtn" type="button" class="text-gray-400 hover:text-gray-200 text-2xl px-2">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 bg-gray-900 rounded-b-2xl overflow-hidden flex relative">
+            <iframe id="pdfEmbedElement" class="w-full h-full border-none"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // SUPABASE CLIENT INITIALIZATION
+        const SUPABASE_URL = 'https://zuyjjwobumpmppurbozl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1eWpqd29idW1wbXBwdXJib3psIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNTc5OTksImV4cCI6MjEwNjkzMzk5OX0.POQ4e07F2DIDax5AEl4cEPSXy42kLk3BZLUjObV-2jA';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let state = {
+            subjects: [],
+            materials: [],
+            activeSubjectId: 'ALL',
+            activeTab: 'ALL',
+            searchQuery: '',
+            mainQuill: null
+        };
+
+        function normalizeText(str) {
+            if (!str) return '';
+            return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ł/g, "l").replace(/Ł/g, "l");
+        }
+
+        async function loadDataFromSupabase() {
+            try {
+                // Pobieranie przedmiotów z Supabase
+                const { data: subjData, error: subjErr } = await supabase.from('subjects').select('*');
+                if (subjErr) console.error('Błąd pobierania przedmiotów:', subjErr);
+                state.subjects = subjData || [];
+
+                // Pobieranie materiałów z Supabase
+                const { data: matData, error: matErr } = await supabase.from('materials').select('*');
+                if (matErr) console.error('Błąd pobierania materiałów:', matErr);
+                
+                state.materials = (matData || []).map(m => ({
+                    ...m,
+                    subjectId: m.subject_id || m.subjectId || 'subj-1',
+                    createdAt: m.created_at || m.createdAt
+                }));
+
+                // Jeśli brak jakichkolwiek przedmiotów w bazie, dodaj domyślny
+                if (state.subjects.length === 0) {
+                    const defaultSubj = { id: 'subj-1', name: 'Analiza Matematyczna', semester: '1' };
+                    await supabase.from('subjects').insert([defaultSubj]);
+                    state.subjects = [defaultSubj];
+                }
+
+                renderSidebar();
+                renderMaterials();
+            } catch (e) {
+                console.error("Błąd ładowania danych z Supabase:", e);
+            }
+        }
+
+        function renderSidebar() {
+            const nav = document.getElementById('subjectNavList');
+            const semFilter = document.getElementById('semesterFilter').value;
+            nav.innerHTML = '';
+
+            let filteredSubjects = state.subjects;
+            if (semFilter !== 'ALL') {
+                filteredSubjects = state.subjects.filter(s => s.semester === semFilter);
+            }
+
+            const allBtn = document.createElement('button');
+            allBtn.type = 'button';
+            allBtn.className = `w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${state.activeSubjectId === 'ALL' ? 'bg-brand-900/40 text-brand-300' : 'text-gray-400 hover:bg-gray-700'}`;
+            allBtn.innerHTML = `<span class="flex items-center gap-2"><i class="fa-solid fa-border-all"></i> Wszystkie Przedmioty</span>`;
+            allBtn.onclick = () => { state.activeSubjectId = 'ALL'; renderSidebar(); renderMaterials(); };
+            nav.appendChild(allBtn);
+
+            filteredSubjects.forEach(sub => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer ${state.activeSubjectId === sub.id ? 'bg-brand-900/40 text-brand-300' : 'text-gray-400 hover:bg-gray-700'}`;
+                btn.innerHTML = `
+                    <span class="truncate flex items-center gap-2"><i class="fa-solid fa-folder"></i> ${sub.name}</span>
+                    <span class="text-[10px] opacity-60">Sem ${sub.semester || '1'}</span>
+                `;
+                btn.onclick = () => { state.activeSubjectId = sub.id; renderSidebar(); renderMaterials(); };
+                nav.appendChild(btn);
+            });
+        }
+
+        function renderMaterials() {
+            const grid = document.getElementById('materialsGrid');
+            const emptyState = document.getElementById('emptyState');
+            grid.innerHTML = '';
+
+            const normalizedQuery = normalizeText(state.searchQuery.trim());
+
+            let filtered = state.materials.filter(mat => {
+                const subjectObj = state.subjects.find(s => s.id === mat.subjectId);
+                const subjectName = subjectObj ? subjectObj.name : '';
+
+                if (state.activeSubjectId !== 'ALL' && mat.subjectId !== state.activeSubjectId) return false;
+
+                const semFilter = document.getElementById('semesterFilter').value;
+                if (semFilter !== 'ALL' && subjectObj && subjectObj.semester !== semFilter) return false;
+
+                if (normalizedQuery.length > 0) {
+                    const matchTitle = normalizeText(mat.title).includes(normalizedQuery);
+                    const matchSubject = normalizeText(subjectName).includes(normalizedQuery);
+                    if (!matchTitle && !matchSubject) return false;
+                }
+                return true;
+            });
+
+            document.getElementById('cntAll').textContent = filtered.length;
+            document.getElementById('cntPdfs').textContent = filtered.filter(m => m.type === 'pdf').length;
+            document.getElementById('cntNotes').textContent = filtered.filter(m => m.type === 'note').length;
+
+            if (state.activeTab === 'PDF') filtered = filtered.filter(m => m.type === 'pdf');
+            if (state.activeTab === 'NOTE') filtered = filtered.filter(m => m.type === 'note');
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+            }
+
+            filtered.forEach(mat => {
+                const card = document.createElement('div');
+                card.className = "bg-gray-800 rounded-2xl border border-gray-700 p-4 shadow-sm hover:shadow-md transition flex flex-col justify-between group";
+
+                const isPdf = mat.type === 'pdf';
+                const subjectObj = state.subjects.find(s => s.id === mat.subjectId);
+                const subjectName = subjectObj ? subjectObj.name : 'Ogólne';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${isPdf ? 'bg-red-950/60 text-red-300' : 'bg-indigo-950/60 text-indigo-300'}">
+                                <i class="fa-solid ${isPdf ? 'fa-file-pdf' : 'fa-note-sticky'} mr-1"></i> ${isPdf ? 'PDF' : 'NOTATKA'}
+                            </span>
+                            <span class="text-[11px] text-gray-400">${mat.createdAt ? new Date(mat.createdAt).toLocaleDateString() : ''}</span>
+                        </div>
+                        <h4 class="font-bold text-sm text-gray-100 line-clamp-2 mb-1 group-hover:text-brand-400 transition">${mat.title}</h4>
+                        <p class="text-xs text-gray-400 mb-3"><i class="fa-solid fa-graduation-cap text-[10px] mr-1"></i> ${subjectName}</p>
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-700 flex items-center justify-between">
+                        <button type="button" class="open-mat-btn text-xs font-bold text-brand-400 hover:underline flex items-center gap-1 cursor-pointer">
+                            <i class="fa-solid fa-folder-open"></i> Otwórz
+                        </button>
+                        <button type="button" class="del-mat-btn text-xs text-gray-400 hover:text-red-500 transition p-1 cursor-pointer">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+
+                card.querySelector('.open-mat-btn').onclick = () => openMaterial(mat);
+                card.querySelector('.del-mat-btn').onclick = async (e) => {
+                    e.stopPropagation();
+                    if(confirm(`Czy na pewno chcesz usunąć "${mat.title}"?`)) {
+                        await supabase.from('materials').delete().eq('id', mat.id);
+                        state.materials = state.materials.filter(m => m.id !== mat.id);
+                        renderMaterials();
+                    }
+                };
+
+                grid.appendChild(card);
+            });
+        }
+
+        function openMaterial(mat) {
+            if (mat.type === 'pdf') {
+                document.getElementById('pdfViewerTitle').textContent = mat.title;
+                document.getElementById('pdfEmbedElement').src = mat.file_url;
+                document.getElementById('downloadPdfDirectBtn').href = mat.file_url;
+                document.getElementById('pdfViewerModal').classList.remove('hidden');
+            } else {
+                openNoteEditor(mat);
+            }
+        }
+
+        function openNoteEditor(mat = null) {
+            const modal = document.getElementById('noteModal');
+            const subjectSelect = document.getElementById('noteSubjectSelect');
+            
+            subjectSelect.innerHTML = state.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+            if (mat) {
+                document.getElementById('noteModalHeader').textContent = 'Edycja Notatki';
+                document.getElementById('noteIdInput').value = mat.id;
+                document.getElementById('noteTitleInput').value = mat.title;
+                subjectSelect.value = mat.subjectId;
+                state.mainQuill.root.innerHTML = mat.content || '';
+            } else {
+                document.getElementById('noteModalHeader').textContent = 'Nowa Notatka';
+                document.getElementById('noteIdInput').value = '';
+                document.getElementById('noteTitleInput').value = '';
+                if (state.activeSubjectId !== 'ALL') subjectSelect.value = state.activeSubjectId;
+                state.mainQuill.root.innerHTML = '';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        async function handlePdfUpload(file) {
+            if (!file || file.type !== 'application/pdf') {
+                alert('Proszę wybrać plik PDF.');
+                return;
+            }
+
+            const btnText = document.getElementById('uploadBtnText');
+            btnText.textContent = "Wysyłanie...";
+
+            try {
+                const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                const fileName = `${Date.now()}_${cleanName}`;
+
+                const { data: storageData, error: storageErr } = await supabase.storage
+                    .from('pdf-files')
+                    .upload(fileName, file);
+
+                if (storageErr) throw storageErr;
+
+                const { data: urlData } = supabase.storage
+                    .from('pdf-files')
+                    .getPublicUrl(fileName);
+
+                let targetSubjectId = state.activeSubjectId === 'ALL' ? (state.subjects[0]?.id || 'subj-1') : state.activeSubjectId;
+
+                const newPdf = {
+                    id: 'pdf-' + Date.now(),
+                    type: 'pdf',
+                    title: file.name.replace(/\.[^/.]+$/, ""),
+                    file_url: urlData.publicUrl,
+                    subject_id: targetSubjectId,
+                    created_at: new Date().toISOString()
+                };
+
+                const { error: dbErr } = await supabase.from('materials').insert([newPdf]);
+                if (dbErr) throw dbErr;
+
+                state.materials.push({ ...newPdf, subjectId: targetSubjectId, createdAt: newPdf.created_at });
+                renderMaterials();
+                alert('Plik PDF został pomyślnie dodany!');
+            } catch (err) {
+                alert('Błąd podczas zapisywania PDF w Supabase: ' + err.message);
+                console.error(err);
+            } finally {
+                btnText.textContent = "Dodaj PDF";
+            }
+        }
+
+        // AKCJE I SŁUCHACZE ZDARZEŃ
+        window.addEventListener('DOMContentLoaded', async () => {
+            document.documentElement.classList.add('dark');
+
+            state.mainQuill = new Quill('#quillEditor', {
+                theme: 'snow',
+                placeholder: 'Rozpocznij tworzenie czytelnych notatek...'
+            });
+
+            await loadDataFromSupabase();
+
+            // Słuchacz dodawania przedmiotu
+            document.getElementById('addSubjectBtn').onclick = () => {
+                document.getElementById('newSubjectName').value = '';
+                document.getElementById('subjectModal').classList.remove('hidden');
+            };
+
+            document.getElementById('cancelSubjectBtn').onclick = () => {
+                document.getElementById('subjectModal').classList.add('hidden');
+            };
+
+            document.getElementById('saveSubjectBtn').onclick = async () => {
+                const name = document.getElementById('newSubjectName').value.trim();
+                const sem = document.getElementById('newSubjectSemester').value;
+                if (!name) return alert('Wpisz nazwę przedmiotu');
+
+                const newSub = { id: 'subj-' + Date.now(), name: name, semester: sem };
+                
+                const { error } = await supabase.from('subjects').insert([newSub]);
+                if (error) {
+                    alert('Błąd dodawania przedmiotu w Supabase: ' + error.message);
+                    return;
+                }
+
+                state.subjects.push(newSub);
+                document.getElementById('subjectModal').classList.add('hidden');
+                renderSidebar();
+                alert('Przedmiot "' + name + '" został dodany!');
+            };
+
+            // Słuchacz nowej notatki
+            document.getElementById('openNewNoteBtn').onclick = () => openNoteEditor();
+            document.getElementById('closeNoteModalBtn').onclick = () => document.getElementById('noteModal').classList.add('hidden');
+            document.getElementById('cancelNoteBtn').onclick = () => document.getElementById('noteModal').classList.add('hidden');
+
+            document.getElementById('saveNoteBtn').onclick = async () => {
+                const id = document.getElementById('noteIdInput').value || ('note-' + Date.now());
+                const title = document.getElementById('noteTitleInput').value.trim() || 'Bez tytułu';
+                const subject_id = document.getElementById('noteSubjectSelect').value;
+                const content = state.mainQuill.root.innerHTML;
+                const created_at = new Date().toISOString();
+
+                const noteMat = { id, type: 'note', title, subject_id, content, created_at };
+
+                const { error } = await supabase.from('materials').upsert([noteMat]);
+                if (error) {
+                    alert('Błąd zapisywania notatki: ' + error.message);
+                    return;
+                }
+
+                const localMat = { ...noteMat, subjectId: subject_id, createdAt: created_at };
+                const idx = state.materials.findIndex(m => m.id === id);
+                if (idx >= 0) state.materials[idx] = localMat;
+                else state.materials.push(localMat);
+
+                document.getElementById('noteModal').classList.add('hidden');
+                renderMaterials();
+                alert('Notatka "' + title + '" została zapisana w Supabase!');
+            };
+
+            // Dodawanie PDF
+            document.getElementById('pdfFileInput').onchange = async (e) => {
+                if (e.target.files.length > 0) {
+                    await handlePdfUpload(e.target.files[0]);
+                    e.target.value = '';
+                }
+            };
+
+            // Przełączanie filtrów
+            document.getElementById('semesterFilter').onchange = () => {
+                renderSidebar();
+                renderMaterials();
+            };
+
+            document.getElementById('globalSearchInput').addEventListener('input', (e) => {
+                state.searchQuery = e.target.value;
+                renderMaterials();
+            });
+
+            document.getElementById('tabAll').onclick = () => setTab('ALL', document.getElementById('tabAll'));
+            document.getElementById('tabPdfs').onclick = () => setTab('PDF', document.getElementById('tabPdfs'));
+            document.getElementById('tabNotes').onclick = () => setTab('NOTE', document.getElementById('tabNotes'));
+
+            function setTab(tab, element) {
+                state.activeTab = tab;
+                document.querySelectorAll('.filter-tab').forEach(b => {
+                    b.classList.remove('text-brand-400', 'border-b-2', 'border-brand-600', 'font-bold');
+                    b.classList.add('text-gray-500', 'font-medium');
+                });
+                element.classList.add('text-brand-400', 'border-b-2', 'border-brand-600', 'font-bold');
+                element.classList.remove('text-gray-500', 'font-medium');
+                renderMaterials();
+            }
+
+            document.getElementById('closePdfViewerBtn').onclick = () => {
+                document.getElementById('pdfViewerModal').classList.add('hidden');
+            };
+
+            document.getElementById('themeToggleBtn').onclick = () => {
+                document.documentElement.classList.toggle('dark');
+            };
+        });
+    </script>
+</body>
+</html>
