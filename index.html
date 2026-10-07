@@ -52,139 +52,172 @@
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 h-full flex flex-col font-sans transition-colors duration-200">
 
-    <!-- Top Bar Navigation -->
-    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-            <!-- App Logo -->
-            <div class="flex items-center space-x-3 cursor-pointer" id="appLogoHome">
-                <div class="bg-gradient-to-tr from-brand-600 to-indigo-600 text-white p-2.5 rounded-xl shadow-md">
-                    <i class="fa-solid fa-book-open text-xl"></i>
-                </div>
+    <!-- EKRAN LOGOWANIA / HASŁO -->
+    <div id="loginOverlay" class="fixed inset-0 bg-gray-900/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-md p-6 sm:p-8 shadow-2xl text-center">
+            <div class="bg-brand-600/20 text-brand-400 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2 class="text-xl font-bold text-white mb-1">Dostęp Zabezpieczony</h2>
+            <p class="text-xs text-gray-400 mb-6">Wprowadź hasło, aby uzyskać dostęp do materiałów</p>
+
+            <form id="loginForm" onsubmit="return false;" class="space-y-4">
                 <div>
-                    <h1 class="font-bold text-lg leading-tight tracking-tight">StudyHub <span class="text-brand-600 dark:text-brand-500">PDF & Notes</span></h1>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Twoje wirtualne biurko na studia</p>
+                    <input type="password" id="accessPasswordInput" placeholder="Wpisz hasło..." 
+                           class="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-400 text-center focus:ring-2 focus:ring-brand-500 focus:outline-none transition">
                 </div>
-            </div>
+                
+                <p id="loginErrorMessage" class="hidden text-xs text-red-400 font-medium">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> Błędne hasło! Spróbuj ponownie.
+                </p>
 
-            <!-- Global Search Bar -->
-            <div class="flex-1 max-w-md">
-                <div class="relative flex items-center">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400"></i>
-                    <input type="text" id="globalSearchInput" placeholder="Szukaj materiałów..." 
-                           class="w-full pl-10 pr-9 py-2 text-sm bg-gray-100 dark:bg-gray-700 border-none rounded-xl focus:ring-2 focus:ring-brand-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 transition">
-                </div>
-            </div>
-
-            <!-- Header Controls -->
-            <div class="flex items-center space-x-2">
-                <button id="themeToggleBtn" type="button" title="Tryb Ciemny/Jasny" class="p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
-                    <i class="fa-solid fa-moon dark:hidden text-lg"></i>
-                    <i class="fa-solid fa-sun hidden dark:block text-lg text-amber-400"></i>
+                <button id="loginSubmitBtn" type="button" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg cursor-pointer">
+                    Odblokuj dostęp
                 </button>
-            </div>
+            </form>
         </div>
-    </header>
+    </div>
 
-    <!-- Main Content Container -->
-    <div class="flex-1 flex overflow-hidden max-w-7xl w-full mx-auto p-2 sm:p-4 gap-4">
-        
-        <!-- Sidebar Navigation -->
-        <aside class="w-64 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 flex flex-col shrink-0 hidden md:flex shadow-sm">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Przedmioty</h2>
-                <button id="addSubjectBtn" type="button" class="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400 font-bold flex items-center gap-1 cursor-pointer">
-                    <i class="fa-solid fa-plus"></i> Dodaj
-                </button>
-            </div>
+    <!-- GLÓWNA APLIKACJA (UKRYTA PRZED ZALOGOWANIEM) -->
+    <div id="appContainer" class="hidden h-full flex flex-col">
 
-            <!-- Semester Dropdown Filter -->
-            <div class="mb-3">
-                <label class="block text-[10px] font-bold uppercase text-gray-400 mb-1">Filtruj wg Semestru</label>
-                <select id="semesterFilter" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-xs rounded-xl px-3 py-2 font-medium">
-                    <option value="ALL">Wszystkie Semestry</option>
-                    <option value="1">Semestr 1</option>
-                    <option value="2">Semestr 2</option>
-                    <option value="3">Semestr 3</option>
-                    <option value="4">Semestr 4</option>
-                    <option value="5">Semestr 5</option>
-                    <option value="6">Semestr 6</option>
-                    <option value="7">Semestr 7</option>
-                </select>
-            </div>
-
-            <!-- Dynamic Subject Nav -->
-            <nav id="subjectNavList" class="flex-1 overflow-y-auto space-y-1 pr-1">
-                <!-- Loaded Dynamically -->
-            </nav>
-
-            <hr class="my-3 border-gray-200 dark:border-gray-700">
-
-            <!-- Storage Info -->
-            <div class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-                <div class="flex justify-between items-center">
-                    <span>Status Bazy:</span>
-                    <span id="dbStatusBadge" class="font-semibold text-brand-500 flex items-center gap-1">
-                        <i class="fa-solid fa-circle text-[8px]"></i> Połączono
-                    </span>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main Content Area -->
-        <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-            
-            <!-- Dashboard View Header -->
-            <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-3 items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
-                <div>
-                    <h2 id="currentSubjectTitle" class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <i class="fa-solid fa-layer-group text-brand-600"></i> Wszystkie Materiały
-                    </h2>
-                    <p id="currentSubjectSubtitle" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Pliki PDF oraz zapisane notatki studenckie</p>
-                </div>
-
-                <!-- Add Actions -->
-                <div class="flex items-center space-x-2">
-                    <button id="openNewNoteBtn" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                        <span>Nowa Notatka</span>
-                    </button>
-                    <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-1.5 cursor-pointer shadow-sm">
-                        <i class="fa-solid fa-file-circle-plus"></i>
-                        <span id="uploadBtnText">Dodaj PDF</span>
-                        <input type="file" id="pdfFileInput" accept="application/pdf" class="hidden">
-                    </label>
-                </div>
-            </div>
-
-            <!-- Content Filter Tabs -->
-            <div class="px-5 pt-3 flex items-center space-x-4 border-b border-gray-100 dark:border-gray-700 text-sm">
-                <button id="tabAll" type="button" class="filter-tab pb-2.5 font-bold text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400">
-                    Wszystko (<span id="cntAll">0</span>)
-                </button>
-                <button id="tabPdfs" type="button" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
-                    Pliki PDF (<span id="cntPdfs">0</span>)
-                </button>
-                <button id="tabNotes" type="button" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
-                    Notatki (<span id="cntNotes">0</span>)
-                </button>
-            </div>
-
-            <!-- Material Card Grid -->
-            <div class="flex-1 overflow-y-auto p-4 sm:p-5">
-                <div id="materialsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Loaded dynamically -->
-                </div>
-
-                <!-- Empty State -->
-                <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
-                    <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-2xl flex items-center justify-center mb-3 text-2xl">
-                        <i class="fa-solid fa-folder-open"></i>
+        <!-- Top Bar Navigation -->
+        <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+                <!-- App Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" id="appLogoHome">
+                    <div class="bg-gradient-to-tr from-brand-600 to-indigo-600 text-white p-2.5 rounded-xl shadow-md">
+                        <i class="fa-solid fa-book-open text-xl"></i>
                     </div>
-                    <h3 class="text-base font-bold text-gray-800 dark:text-gray-200">Brak materiałów</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 max-w-xs mt-1 mb-4">Dodaj nowy plik PDF lub stwórz pierwszą notatkę.</p>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight tracking-tight">StudyHub <span class="text-brand-600 dark:text-brand-500">PDF & Notes</span></h1>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Twoje wirtualne biurko na studia</p>
+                    </div>
+                </div>
+
+                <!-- Global Search Bar -->
+                <div class="flex-1 max-w-md">
+                    <div class="relative flex items-center">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-gray-400"></i>
+                        <input type="text" id="globalSearchInput" placeholder="Szukaj materiałów..." 
+                               class="w-full pl-10 pr-9 py-2 text-sm bg-gray-100 dark:bg-gray-700 border-none rounded-xl focus:ring-2 focus:ring-brand-500 text-gray-900 dark:text-gray-100 placeholder-gray-500 transition">
+                    </div>
+                </div>
+
+                <!-- Header Controls -->
+                <div class="flex items-center space-x-2">
+                    <button id="themeToggleBtn" type="button" title="Tryb Ciemny/Jasny" class="p-2.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
+                        <i class="fa-solid fa-moon dark:hidden text-lg"></i>
+                        <i class="fa-solid fa-sun hidden dark:block text-lg text-amber-400"></i>
+                    </button>
+                    <button id="logoutBtn" type="button" title="Wyloguj" class="p-2.5 text-gray-400 hover:text-red-400 rounded-xl transition">
+                        <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                    </button>
                 </div>
             </div>
-        </main>
+        </header>
+
+        <!-- Main Content Container -->
+        <div class="flex-1 flex overflow-hidden max-w-7xl w-full mx-auto p-2 sm:p-4 gap-4">
+            
+            <!-- Sidebar Navigation -->
+            <aside class="w-64 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 flex flex-col shrink-0 hidden md:flex shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Przedmioty</h2>
+                    <button id="addSubjectBtn" type="button" class="text-xs text-brand-600 hover:text-brand-700 dark:text-brand-400 font-bold flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-plus"></i> Dodaj
+                    </button>
+                </div>
+
+                <!-- Semester Dropdown Filter -->
+                <div class="mb-3">
+                    <label class="block text-[10px] font-bold uppercase text-gray-400 mb-1">Filtruj wg Semestru</label>
+                    <select id="semesterFilter" class="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-xs rounded-xl px-3 py-2 font-medium">
+                        <option value="ALL">Wszystkie Semestry</option>
+                        <option value="1">Semestr 1</option>
+                        <option value="2">Semestr 2</option>
+                        <option value="3">Semestr 3</option>
+                        <option value="4">Semestr 4</option>
+                        <option value="5">Semestr 5</option>
+                        <option value="6">Semestr 6</option>
+                        <option value="7">Semestr 7</option>
+                    </select>
+                </div>
+
+                <!-- Dynamic Subject Nav -->
+                <nav id="subjectNavList" class="flex-1 overflow-y-auto space-y-1 pr-1">
+                    <!-- Loaded Dynamically -->
+                </nav>
+
+                <hr class="my-3 border-gray-200 dark:border-gray-700">
+
+                <!-- Storage Info -->
+                <div class="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                    <div class="flex justify-between items-center">
+                        <span>Status Bazy:</span>
+                        <span id="dbStatusBadge" class="font-semibold text-brand-500 flex items-center gap-1">
+                            <i class="fa-solid fa-circle text-[8px]"></i> Połączono
+                        </span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                
+                <!-- Dashboard View Header -->
+                <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-3 items-center justify-between bg-gray-50/50 dark:bg-gray-800/50">
+                    <div>
+                        <h2 id="currentSubjectTitle" class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-brand-600"></i> Wszystkie Materiały
+                        </h2>
+                        <p id="currentSubjectSubtitle" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Pliki PDF oraz zapisane notatki studenckie</p>
+                    </div>
+
+                    <!-- Add Actions -->
+                    <div class="flex items-center space-x-2">
+                        <button id="openNewNoteBtn" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            <span>Nowa Notatka</span>
+                        </button>
+                        <label class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold transition flex items-center space-x-1.5 cursor-pointer shadow-sm">
+                            <i class="fa-solid fa-file-circle-plus"></i>
+                            <span id="uploadBtnText">Dodaj PDF</span>
+                            <input type="file" id="pdfFileInput" accept="application/pdf" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Content Filter Tabs -->
+                <div class="px-5 pt-3 flex items-center space-x-4 border-b border-gray-100 dark:border-gray-700 text-sm">
+                    <button id="tabAll" type="button" class="filter-tab pb-2.5 font-bold text-brand-600 dark:text-brand-400 border-b-2 border-brand-600 dark:border-brand-400">
+                        Wszystko (<span id="cntAll">0</span>)
+                    </button>
+                    <button id="tabPdfs" type="button" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                        Pliki PDF (<span id="cntPdfs">0</span>)
+                    </button>
+                    <button id="tabNotes" type="button" class="filter-tab pb-2.5 font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                        Notatki (<span id="cntNotes">0</span>)
+                    </button>
+                </div>
+
+                <!-- Material Card Grid -->
+                <div class="flex-1 overflow-y-auto p-4 sm:p-5">
+                    <div id="materialsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Loaded dynamically -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
+                        <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 text-gray-400 rounded-2xl flex items-center justify-center mb-3 text-2xl">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-gray-800 dark:text-gray-200">Brak materiałów</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 max-w-xs mt-1 mb-4">Dodaj nowy plik PDF lub stwórz pierwszą notatkę.</p>
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
 
     <!-- MODAL: Subject Creation -->
@@ -293,19 +326,16 @@
 
         async function loadDataFromSupabase() {
             try {
-                // 1. Pobieranie przedmiotów
                 const { data: subjData, error: subjErr } = await supabaseClient.from('subjects').select('*');
                 if (subjErr) console.error('Błąd pobierania przedmiotów:', subjErr);
                 state.subjects = subjData || [];
 
-                // Jeśli baza nie zawiera przedmiotów, utwórz domyślny
                 if (state.subjects.length === 0) {
                     const defaultSubj = { id: 'subj-1', name: 'Analiza Matematyczna', semester: '1' };
                     await supabaseClient.from('subjects').insert([defaultSubj]);
                     state.subjects = [defaultSubj];
                 }
 
-                // 2. Pobieranie materiałów
                 const { data: matData, error: matErr } = await supabaseClient.from('materials').select('*');
                 if (matErr) console.error('Błąd pobierania materiałów:', matErr);
                 
@@ -485,19 +515,16 @@
                 const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
                 const fileName = `${Date.now()}_${cleanName}`;
 
-                // 1. Upload do Storage Bucketa
                 const { data: storageData, error: storageErr } = await supabaseClient.storage
                     .from('pdf-files')
                     .upload(fileName, file);
 
                 if (storageErr) throw storageErr;
 
-                // 2. Pobieranie odnośnika publicznego
                 const { data: urlData } = supabaseClient.storage
                     .from('pdf-files')
                     .getPublicUrl(fileName);
 
-                // Przypisanie przedmiotu: jeśli użytkownik nie wybrał konkretnego przedmiotu, użyj pierwszego z bazy
                 let targetSubjectId = state.activeSubjectId;
                 if (targetSubjectId === 'ALL') {
                     targetSubjectId = state.subjects.length > 0 ? state.subjects[0].id : 'subj-1';
@@ -512,11 +539,9 @@
                     created_at: new Date().toISOString()
                 };
 
-                // 3. Zapis w tabeli SQL
                 const { error: dbErr } = await supabaseClient.from('materials').insert([newPdf]);
                 if (dbErr) throw dbErr;
 
-                // 4. Zaktualizowanie stanu lokalnego i odświeżenie widoku
                 state.materials.push({ ...newPdf, subjectId: targetSubjectId, createdAt: newPdf.created_at });
                 renderMaterials();
                 alert('Plik PDF został pomyślnie dodany i jest już widoczny na liście!');
@@ -528,16 +553,54 @@
             }
         }
 
-        // GŁÓWNY SŁUCHACZ PO ZAŁADOWANIU DOM
-        window.addEventListener('DOMContentLoaded', async () => {
+        // LOGIKA LOGOWANIA I HASŁA
+        function checkPassword() {
+            const input = document.getElementById('accessPasswordInput');
+            const errorMsg = document.getElementById('loginErrorMessage');
+            
+            if (input.value === '123321') {
+                sessionStorage.setItem('authenticated', 'true');
+                unlockApp();
+            } else {
+                errorMsg.classList.remove('hidden');
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        function unlockApp() {
+            document.getElementById('loginOverlay').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            
+            if (!state.mainQuill) {
+                state.mainQuill = new Quill('#quillEditor', {
+                    theme: 'snow',
+                    placeholder: 'Rozpocznij tworzenie czytelnych notatek...'
+                });
+                loadDataFromSupabase();
+            }
+        }
+
+        // GŁÓWNY SŁUCHACZ DOM
+        window.addEventListener('DOMContentLoaded', () => {
             document.documentElement.classList.add('dark');
 
-            state.mainQuill = new Quill('#quillEditor', {
-                theme: 'snow',
-                placeholder: 'Rozpocznij tworzenie czytelnych notatek...'
+            // Podpięcie logowania
+            document.getElementById('loginSubmitBtn').onclick = checkPassword;
+            document.getElementById('accessPasswordInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkPassword();
             });
 
-            await loadDataFromSupabase();
+            // Wylogowywanie
+            document.getElementById('logoutBtn').onclick = () => {
+                sessionStorage.removeItem('authenticated');
+                location.reload();
+            };
+
+            // Jeśli już zalogowany w sesji -> odblokuj
+            if (sessionStorage.getItem('authenticated') === 'true') {
+                unlockApp();
+            }
 
             // Przycisk Dodaj Przedmiot
             document.getElementById('addSubjectBtn').onclick = () => {
